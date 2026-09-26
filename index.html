@@ -2062,7 +2062,7 @@ ${JSON.stringify(eventsForAI, null, 0)}`;
   const tonalyFilter = _tonalyFilter;
 
   // Client-side tonal risk safety net — filter HIGH risk AND hard tonal rules
-  const safeResults = (parsed.results || []).filter(r => r.tonal_risk !== 'HIGH' && tonalyFilter(r.name || eventById?.[r.id]?.name, ''));
+  const safeResults = (parsed.results || []).filter(r => r.tonal_risk !== 'HIGH' && tonalyFilter(r.name || events.find(e => e.id === r.id)?.name || '', ''));
   const safeGenerated = (parsed.generated || []).filter(g => g.tonal_risk !== 'HIGH' && tonalyFilter(g.name, g.cat));
 
   // Convert generated events into result-like objects with a special marker
