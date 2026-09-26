@@ -1758,7 +1758,7 @@ const MARKET_CITIES = {
 async function fetchBandsintownGigs(artists, markets) {
   if (!artists || artists.length === 0) return [];
   try {
-    const appId = 'orbit_spotify_creative_labs';
+    const appId = 'orbit';
     const today = new Date();
     const yearAhead = new Date(today.getTime() + 365 * 24 * 60 * 60 * 1000);
 
