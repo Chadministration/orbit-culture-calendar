@@ -1974,12 +1974,16 @@ HIGH tonal risk examples:
 - Gambling brands + family, children, or financial hardship moments
 - Luxury brands + poverty or social inequality moments
 - Any brand + tragedy, disaster, or deeply political/divisive events (unless the brand is specifically built around that cause)
+- Any non-alcohol brand + alcohol moments (cocktail weeks, Negroni Week, wine/beer/spirits festivals, Oktoberfest) — especially when the audience is Gen Z / under-25s
+- Any non-health, non-charity brand + health or mental-health awareness days (R U OK? Day, World Mental Health Day, any "Awareness" day/week/month)
+- Industry trade weeks for a DIFFERENT industry (e.g. CLIA Cruise Week for a fast food brand) — these are irrelevant, not just risky; leave them out
 
 PART 2 — GENERATE additional moments: Think beyond the database. What other real, confirmed cultural moments, events, music releases, sporting fixtures, film premieres, brand moments, or cultural anniversaries are relevant to this brief that are NOT in the database? These must be real events you are highly confident exist or are scheduled — do not invent or guess. Include upcoming tours, confirmed festival lineups, major sporting events, film release dates, cultural tentpoles. Focus on the specific market, audience, and timing in the brief.
 
 Return ONLY a JSON object in this exact format:
 {
   "brand_profile": "1-2 sentence summary of the brand's tone, values, and what it should/should not attach to",
+  "brand_category": "ONE of: health, charity, alcohol, non-alcoholic drinks, food & beverage, travel, fashion, tech, finance, automotive, entertainment, retail, other",
   "relevant_artists": ["Artist or Band Name", "Artist or Band Name", ...],
   "results": [
     {"id": "event_id", "reason": "1-2 sentence explanation of why this event is relevant to this specific brief", "tonal_risk": "LOW|MEDIUM|HIGH"},
@@ -2039,17 +2043,23 @@ ${JSON.stringify(eventsForAI, null, 0)}`;
 
   // ── Hard tonal filter ────────────────────────────────────────────────────
   // Build brand context from the AI's own brand_profile to determine sensitivity
-  const brandProfile = (parsed.brand_profile || '').toLowerCase();
-  const isHealthBrand     = /health|wellness|medical|pharma|fitness|mental health|charity|non.?profit/.test(brandProfile);
-  const isAlcoholBrand    = /alcohol|beer|wine|spirits|cocktail|distill|brewery|winery/.test(brandProfile);
-  const isSoberBrand      = /non.?alcohol|alcohol.?free|sober|mocktail|soft drink|water|juice/.test(brandProfile);
-  const isFoodBevBrand    = /food|beverage|drink|snack|restaurant|fast food|cafe|coffee|tea/.test(brandProfile);
+  // Use the AI's single-word category, not the free-text profile — a profile saying
+  // "not a health brand" would otherwise match /health/ and unlock health moments.
+  const brandCategory = (parsed.brand_category || '').toLowerCase();
+  const isHealthBrand     = /^(health|charity)/.test(brandCategory);
+  const isAlcoholBrand    = /^alcohol/.test(brandCategory);
+  const isSoberBrand      = /^non-alcoholic/.test(brandCategory);
+  const isFoodBevBrand    = /food|drink/.test(brandCategory);
+  const isTravelBrand     = /^travel/.test(brandCategory);
 
   // Keyword groups that are HIGH tonal risk in certain brand contexts
   const DISEASE_AWARENESS  = /cancer|diabetes|alzheimer|dementia|parkinson|ms |multiple sclerosis|hiv|aids|epilepsy|autism|rare disease|tumor/i;
   const SOBRIETY_MOMENTS   = /sober october|dry january|dry july|alcohol.free|sobriety|abstinence/i;
   const GRIEF_TRAGEDY      = /memorial|tragedy|disaster|grief|mourning|bereavement|shooting|massacre/i;
   const POLITICAL_DIVISIVE = /abortion|gun control|immigration reform|far.right|far.left/i;
+  const ALCOHOL_MOMENTS    = /negroni|cocktail|spritz|margarita|wine|beer|brew|spirits|whisk(e)?y|gin |vodka|tequila|oktoberfest|happy hour|bar week/i;
+  const HEALTH_AWARENESS   = /awareness|r u ok|mental health|suicide|movember|world .* day of (health|mental)/i;
+  const TRAVEL_TRADE       = /cruise|clia|travel week|tourism week/i;
 
   _tonalyFilter = function(name = '', cat = '') {
     const n = name.toLowerCase();
@@ -2057,6 +2067,9 @@ ${JSON.stringify(eventsForAI, null, 0)}`;
     if (SOBRIETY_MOMENTS.test(n) && (isFoodBevBrand || isAlcoholBrand) && !isSoberBrand) return false;
     if (GRIEF_TRAGEDY.test(n)) return false;
     if (POLITICAL_DIVISIVE.test(n)) return false;
+    if (ALCOHOL_MOMENTS.test(n) && !isAlcoholBrand) return false;
+    if (HEALTH_AWARENESS.test(n) && !isHealthBrand) return false;
+    if (TRAVEL_TRADE.test(n) && !isTravelBrand) return false;
     return true;
   };
   const tonalyFilter = _tonalyFilter;
