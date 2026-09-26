@@ -2018,7 +2018,6 @@ ${JSON.stringify(eventsForAI, null, 0)}`;
   const response = await fetch(openaiUrl, {
     method: 'POST',
     headers: openaiHeaders,
-    },
     body: JSON.stringify({
       model: 'gpt-4o',
       temperature: 0.3,
