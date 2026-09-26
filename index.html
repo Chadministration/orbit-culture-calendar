@@ -872,7 +872,7 @@ footer {
     </svg>
     <span class="nav-brand-text">Orbit<span></span></span>
   </a>
-  <span class="nav-tag">Spotify Creative Labs · 2026 Culture Calendar</span>
+  <span class="nav-tag">Spotify Creative Labs · 2026–27 Culture Calendar</span>
   <button class="nav-browse-btn" id="nav-browse-btn">Browse all →</button>
 </nav>
 
@@ -935,7 +935,7 @@ footer {
 <!-- ── BROWSE ─────────────────────────────── -->
 <section class="browse-section hidden" id="browse-section">
   <div class="browse-header">
-    <div class="browse-title">All 2026 moments</div>
+    <div class="browse-title">All upcoming moments</div>
     <span style="font-size:13px;color:var(--grey)" id="browse-count"></span>
   </div>
   <div class="browse-filters" id="browse-filters"></div>
@@ -946,7 +946,7 @@ footer {
 <footer>
   <div class="footer-brand">
     <svg viewBox="0 0 24 24" fill="#1DB954"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
-    <span class="footer-text">Spotify Creative Labs · Orbit · 2026 Culture Calendar</span>
+    <span class="footer-text">Spotify Creative Labs · Orbit · 2026–27 Culture Calendar</span>
   </div>
   <span class="footer-text" id="footer-count"></span>
 </footer>
@@ -1472,14 +1472,85 @@ const EVENTS_RAW = [
   {date:'2026-10-10',name:"World Mental Health Day",                      cat:'Health & Wellness',     mkts:['GLOBAL'],                   region:'Global',              rel:'Mindfulness, calm & mental wellness playlists',  pri:'HIGH', tags:['world mental health day','mental health','wellbeing','mindfulness','anxiety','depression','awareness','support','october','global','wellness']},
   {date:'2026-11-01',end:'2026-11-30',name:"Movember / No Shave November", cat:'Health & Wellness',  mkts:['GLOBAL'],                   region:'Global',              rel:'Men\'s health awareness & Movember motivation playlists',pri:'MEDIUM',tags:['movember','no shave november','mens health','prostate cancer','testicular cancer','awareness','november','health','charity','fundraising']},
   {date:'2026-01-01',end:'2026-12-31',name:"COP31 — UN Climate Conference Brisbane", cat:'Sustainability', mkts:['AU','GLOBAL'],        region:'Brisbane, Australia', rel:'Climate action & sustainability movement playlists',pri:'HIGH',tags:['cop31','climate conference','un','climate change','sustainability','environment','brisbane','australia','global','green','activism','2026']},
-  {date:'2026-06-21',name:"Father's Day (US/UK) — also World Music Day", cat:'Cultural & Religious',  mkts:['US','UK','GLOBAL'],        region:'Global',              rel:'Dad\'s all-time classics & family summer playlist', pri:'MEDIUM',tags:['fathers day','world music day','june','dad','family','music','global','celebration','fete de la musique','summer','lifestyle']}
+  {date:'2026-06-21',name:"Father's Day (US/UK) — also World Music Day", cat:'Cultural & Religious',  mkts:['US','UK','GLOBAL'],        region:'Global',              rel:'Dad\'s all-time classics & family summer playlist', pri:'MEDIUM',tags:['fathers day','world music day','june','dad','family','music','global','celebration','fete de la musique','summer','lifestyle']},
+  // ── 2027 (added Sept 2026 — "TBC" dates are estimates; confirm before pitching) ──
+  {date:'2026-12-31',name:"New Year's Eve 2026",cat:'Public Holidays',mkts:['GLOBAL'],region:"Global",rel:"Party & countdown playlists",pri:'HIGH',tags:['nye','party','celebration','countdown','new year','fireworks']},
+  {date:'2027-01-01',name:"New Year's Day 2027",cat:'Public Holidays',mkts:['GLOBAL'],region:"Global",rel:"Fresh-start & reset playlists",pri:'HIGH',tags:['new year','resolutions','fresh start','reset','global']},
+  {date:'2027-01-18',end:'2027-01-31',name:"Australian Open 2027 (dates TBC)",cat:'Australia',mkts:['AU'],region:"Melbourne",rel:"Summer sports hype playlist",pri:'HIGH',tags:['tennis','sport','summer','australia','grand slam','melbourne']},
+  {date:'2027-01-26',name:"Australia Day 2027",cat:'Australia',mkts:['AU'],region:"Australia",rel:"Aussie summer & local artists",pri:'HIGH',tags:['australia day','national','summer','bbq','hottest 100','triple j']},
+  {date:'2027-01-23',name:"triple j Hottest 100 (date TBC)",cat:'Australia',mkts:['AU'],region:"Australia",rel:"Countdown party & new Aussie music",pri:'HIGH',tags:['hottest 100','triple j','countdown','music','australia','gen z','party']},
+  {date:'2027-02-01',end:'2027-02-28',name:"Black History Month (US) 2027",cat:'Cultural & Religious',mkts:['US'],region:"USA",rel:"Celebrating Black artists & history",pri:'HIGH',tags:['black history','culture','heritage','hip hop','r&b','soul','jazz']},
+  {date:'2027-02-05',end:'2027-02-09',name:"Rio Carnival 2027",cat:'Cultural & Religious',mkts:['BR','GLOBAL'],region:"Rio de Janeiro",rel:"Samba, funk & carnival playlists",pri:'HIGH',tags:['carnival','rio','samba','brazil','party','dance','parade']},
+  {date:'2027-02-06',name:"Chinese New Year 2027 \u2014 Year of the Goat",cat:'Cultural & Religious',mkts:['GLOBAL','AU','US','UK'],region:"Global",rel:"Lunar New Year celebration playlists",pri:'HIGH',tags:['lunar new year','chinese new year','goat','asia','family','celebration']},
+  {date:'2027-02-07',name:"Grammy Awards 2027 (date TBC)",cat:'Awards Shows',mkts:['GLOBAL'],region:"Los Angeles, USA",rel:"Nominee & winner playlists",pri:'HIGH',tags:['grammys','music','awards','pop','winners','red carpet']},
+  {date:'2027-02-08',end:'2027-03-09',name:"Ramadan 2027 (approx.)",cat:'Cultural & Religious',mkts:['GLOBAL','IN','UK','FR','ZA'],region:"Global",rel:"Reflective & suhoor/iftar playlists",pri:'MEDIUM',tags:['ramadan','islam','faith','family','reflection','community']},
+  {date:'2027-02-14',name:"Super Bowl LXI",cat:'Sports',mkts:['US','GLOBAL'],region:"Los Angeles, USA",rel:"Halftime show & game-day playlists",pri:'HIGH',tags:['super bowl','nfl','halftime','football','usa','ads','party']},
+  {date:'2027-02-14',name:"Valentine's Day 2027",cat:'Cultural & Religious',mkts:['GLOBAL'],region:"Global",rel:"Love songs & breakup playlists",pri:'HIGH',tags:['valentines','love','romance','dating','couples','breakup']},
+  {date:'2027-02-05',end:'2027-02-07',name:"Laneway Festival 2027 (dates TBC)",cat:'Australia',mkts:['AU'],region:"Australia",rel:"Indie & alt discovery playlists",pri:'MEDIUM',tags:['laneway','festival','indie','alternative','gen z','australia','summer']},
+  {date:'2027-02-19',end:'2027-03-07',name:"Sydney Gay & Lesbian Mardi Gras 2027 (dates TBC)",cat:'Australia',mkts:['AU'],region:"Sydney",rel:"Pride anthems & parade playlists",pri:'HIGH',tags:['mardi gras','pride','lgbtq','sydney','parade','dance','australia']},
+  {date:'2027-03-08',name:"International Women's Day 2027",cat:'Cultural & Religious',mkts:['GLOBAL'],region:"Global",rel:"Celebrating women in music",pri:'HIGH',tags:['iwd','women','equality','female artists','empowerment']},
+  {date:'2027-03-12',end:'2027-03-21',name:"SXSW 2027 (dates TBC)",cat:'Music & Festivals',mkts:['US','GLOBAL'],region:"Austin, USA",rel:"Emerging artist & tech-culture discovery",pri:'MEDIUM',tags:['sxsw','austin','music','tech','film','emerging artists','discovery']},
+  {date:'2027-03-14',name:"Academy Awards 2027 \u2014 99th Oscars (date TBC)",cat:'Awards Shows',mkts:['GLOBAL'],region:"Los Angeles, USA",rel:"Film scores & soundtrack playlists",pri:'HIGH',tags:['oscars','film','awards','soundtrack','red carpet','movies']},
+  {date:'2027-03-10',name:"Eid al-Fitr 2027 (approx.)",cat:'Cultural & Religious',mkts:['GLOBAL','IN','UK','FR','ZA'],region:"Global",rel:"Celebration & family playlists",pri:'MEDIUM',tags:['eid','islam','celebration','family','festive']},
+  {date:'2027-03-22',name:"Holi 2027",cat:'Cultural & Religious',mkts:['IN','GLOBAL'],region:"India",rel:"Colourful Bollywood & dance playlists",pri:'HIGH',tags:['holi','india','colour','bollywood','festival','spring','dance']},
+  {date:'2027-03-26',end:'2027-03-29',name:"Easter Weekend 2027",cat:'Public Holidays',mkts:['GLOBAL','AU','UK','DE','BR','MX'],region:"Global",rel:"Long-weekend road-trip playlists",pri:'HIGH',tags:['easter','long weekend','holiday','family','road trip','chocolate']},
+  {date:'2027-03-25',end:'2027-04-18',name:"Melbourne International Comedy Festival 2027 (dates TBC)",cat:'Australia',mkts:['AU'],region:"Melbourne",rel:"Comedy podcasts & laugh playlists",pri:'MEDIUM',tags:['comedy','melbourne','podcasts','festival','australia','live']},
+  {date:'2027-04-09',end:'2027-04-18',name:"Coachella 2027 (dates TBC)",cat:'Music & Festivals',mkts:['US','GLOBAL'],region:"Indio, USA",rel:"Festival lineup & fashion playlists",pri:'HIGH',tags:['coachella','festival','lineup','fashion','gen z','desert','headliner']},
+  {date:'2027-04-10',end:'2027-04-24',name:"French Presidential Election 2027 (dates TBC)",cat:'Politics & Elections',mkts:['FR'],region:"France",rel:"French music & culture spotlight",pri:'LOW',tags:['election','france','politics']},
+  {date:'2027-04-22',name:"Earth Day 2027",cat:'Sustainability',mkts:['GLOBAL'],region:"Global",rel:"Nature sounds & eco playlists",pri:'MEDIUM',tags:['earth day','sustainability','climate','nature','environment']},
+  {date:'2027-04-25',name:"ANZAC Day 2027",cat:'Australia',mkts:['AU'],region:"Australia",rel:"Respectful, reflective content only",pri:'MEDIUM',tags:['anzac','remembrance','australia','new zealand','national']},
+  {date:'2027-05-03',name:"Met Gala 2027",cat:'Pop Culture',mkts:['US','GLOBAL'],region:"New York, USA",rel:"Red-carpet fashion & celebrity moments",pri:'HIGH',tags:['met gala','fashion','celebrity','red carpet','new york','style']},
+  {date:'2027-05-09',name:"Mother's Day 2027 (AU/US)",cat:'Cultural & Religious',mkts:['AU','US','BR','MX'],region:"Global",rel:"Songs for mum playlists",pri:'HIGH',tags:['mothers day','mum','family','gift','love']},
+  {date:'2027-05-11',end:'2027-05-22',name:"Cannes Film Festival 2027 (dates TBC)",cat:'Film & TV',mkts:['FR','GLOBAL'],region:"Cannes, France",rel:"Film score & premiere playlists",pri:'MEDIUM',tags:['cannes','film','festival','premiere','fashion','france']},
+  {date:'2027-05-15',name:"Eurovision Song Contest 2027 Final (date TBC)",cat:'Music & Festivals',mkts:['GLOBAL','UK','AU','SE','DE','FR'],region:"Europe (host TBC)",rel:"Eurovision bangers & fan playlists",pri:'HIGH',tags:['eurovision','pop','europe','camp','lgbtq','party','song contest']},
+  {date:'2027-05-17',name:"Eid al-Adha 2027 (approx.)",cat:'Cultural & Religious',mkts:['GLOBAL','IN','UK','FR','ZA'],region:"Global",rel:"Celebration & family playlists",pri:'MEDIUM',tags:['eid','islam','celebration','family']},
+  {date:'2027-05-25',name:"Star Wars 50th Anniversary",cat:'Historical Anniversary',mkts:['GLOBAL'],region:"Global",rel:"Iconic film scores & fandom",pri:'HIGH',tags:['star wars','50th','anniversary','film','sci-fi','soundtrack','john williams','fandom']},
+  {date:'2027-05-21',name:"Radiohead OK Computer 30th Anniversary",cat:'Historical Anniversary',mkts:['GLOBAL','UK'],region:"Global",rel:"Alt-rock classics & deep dives",pri:'MEDIUM',tags:['radiohead','ok computer','30th','anniversary','alternative','rock','90s']},
+  {date:'2027-05-21',end:'2027-06-12',name:"Vivid Sydney 2027 (dates TBC)",cat:'Australia',mkts:['AU'],region:"Sydney",rel:"Light, music & ideas festival playlists",pri:'HIGH',tags:['vivid','sydney','lights','festival','music','australia','winter']},
+  {date:'2027-06-01',end:'2027-06-30',name:"Pride Month 2027",cat:'Cultural & Religious',mkts:['GLOBAL'],region:"Global",rel:"Pride anthems & LGBTQ+ artists",pri:'HIGH',tags:['pride','lgbtq','equality','dance','pop','celebration']},
+  {date:'2027-06-03',name:"Bob Marley Exodus 50th Anniversary",cat:'Historical Anniversary',mkts:['GLOBAL'],region:"Global",rel:"Reggae classics & legacy",pri:'MEDIUM',tags:['bob marley','exodus','50th','anniversary','reggae','jamaica']},
+  {date:'2027-06-19',name:"Juneteenth 2027",cat:'Public Holidays',mkts:['US'],region:"USA",rel:"Celebrating Black music & freedom",pri:'MEDIUM',tags:['juneteenth','freedom','black history','culture','usa']},
+  {date:'2027-06-23',end:'2027-06-27',name:"Glastonbury Festival 2027 (dates TBC)",cat:'Music & Festivals',mkts:['UK','GLOBAL'],region:"Somerset, UK",rel:"Headliner & festival playlists",pri:'HIGH',tags:['glastonbury','festival','uk','headliner','pyramid stage','summer']},
+  {date:'2027-06-24',end:'2027-07-25',name:"FIFA Women's World Cup 2027",cat:'Sports',mkts:['GLOBAL','BR','US','UK','AU','SE','DE','FR','MX','AR','ZA','JP'],region:"Brazil",rel:"Matchday & women in sport playlists",pri:'HIGH',tags:['womens world cup','fifa','football','soccer','brazil','women','sport']},
+  {date:'2027-06-26',name:"Harry Potter (book) 30th Anniversary",cat:'Historical Anniversary',mkts:['GLOBAL','UK'],region:"Global",rel:"Wizarding soundtracks & nostalgia",pri:'HIGH',tags:['harry potter','30th','anniversary','books','nostalgia','fandom','film']},
+  {date:'2027-06-28',end:'2027-07-11',name:"Wimbledon 2027",cat:'Sports',mkts:['UK','GLOBAL'],region:"London, UK",rel:"Summer tennis & garden-party playlists",pri:'HIGH',tags:['wimbledon','tennis','london','summer','grand slam','strawberries']},
+  {date:'2027-07-02',end:'2027-07-25',name:"Tour de France 2027 (Grand D\u00e9part Edinburgh)",cat:'Sports',mkts:['FR','UK','GLOBAL'],region:"France / Scotland",rel:"Cycling & endurance playlists",pri:'MEDIUM',tags:['tour de france','cycling','edinburgh','scotland','france','sport','endurance']},
+  {date:'2027-07-04',name:"Independence Day (USA) 2027",cat:'Public Holidays',mkts:['US'],region:"USA",rel:"Americana & BBQ playlists",pri:'HIGH',tags:['july 4th','independence day','usa','bbq','fireworks','summer']},
+  {date:'2027-07-16',end:'2027-07-18',name:"Splendour in the Grass 2027 (dates TBC)",cat:'Australia',mkts:['AU'],region:"Byron Bay",rel:"Festival lineup playlists",pri:'HIGH',tags:['splendour','festival','byron bay','australia','indie','lineup']},
+  {date:'2027-07-23',end:'2027-08-08',name:"Pan American Games 2027",cat:'Sports',mkts:['US','BR','MX','AR','GLOBAL'],region:"Lima, Peru",rel:"Latin sport & pride playlists",pri:'MEDIUM',tags:['pan am games','lima','peru','sport','latin america','athletes']},
+  {date:'2027-08-06',end:'2027-08-23',name:"Melbourne International Film Festival 2027 (dates TBC)",cat:'Australia',mkts:['AU'],region:"Melbourne",rel:"Film scores & soundtrack discovery",pri:'MEDIUM',tags:['miff','film','festival','melbourne','australia','cinema']},
+  {date:'2027-08-06',end:'2027-08-30',name:"Edinburgh Festival Fringe 2027 (dates TBC)",cat:'Pop Culture',mkts:['UK','GLOBAL'],region:"Edinburgh, UK",rel:"Comedy & performance podcasts",pri:'MEDIUM',tags:['edinburgh fringe','comedy','theatre','festival','scotland']},
+  {date:'2027-08-16',name:"Elvis Presley \u2014 50 Years On",cat:'Historical Anniversary',mkts:['GLOBAL','US'],region:"Global",rel:"Celebrate the King's greatest hits",pri:'HIGH',tags:['elvis','50th','anniversary','rock and roll','legend','memphis']},
+  {date:'2027-09-01',end:'2027-09-11',name:"Venice Film Festival 2027 (dates TBC)",cat:'Film & TV',mkts:['GLOBAL'],region:"Venice, Italy",rel:"Awards-season film score playlists",pri:'MEDIUM',tags:['venice','film','festival','premiere','awards season']},
+  {date:'2027-09-18',end:'2027-10-03',name:"Oktoberfest 2027",cat:'Cultural & Religious',mkts:['DE','GLOBAL'],region:"Munich, Germany",rel:"Bavarian party playlists (alcohol brands only)",pri:'MEDIUM',tags:['oktoberfest','munich','germany','beer','festival','party']},
+  {date:'2027-09-25',name:"AFL Grand Final 2027 (date TBC)",cat:'Australia',mkts:['AU'],region:"Melbourne",rel:"Footy anthems & halftime show",pri:'HIGH',tags:['afl','grand final','footy','melbourne','australia','sport','halftime']},
+  {date:'2027-10-01',end:'2027-11-13',name:"Rugby World Cup 2027 \u2014 hosted in Australia",cat:'Australia',mkts:['AU','UK','FR','ZA','AR','JP','GLOBAL'],region:"Australia",rel:"Matchday anthems & national pride",pri:'HIGH',tags:['rugby world cup','rugby','wallabies','australia','host','sport','national pride']},
+  {date:'2027-10-03',name:"NRL Grand Final 2027 (date TBC)",cat:'Australia',mkts:['AU'],region:"Sydney",rel:"Footy anthems & pre-game show",pri:'HIGH',tags:['nrl','grand final','rugby league','sydney','australia','sport']},
+  {date:'2027-10-08',end:'2027-11-30',name:"ICC Cricket World Cup 2027 (dates TBC)",cat:'Sports',mkts:['AU','UK','IN','ZA','GLOBAL'],region:"South Africa, Zimbabwe & Namibia",rel:"Cricket fan & matchday playlists",pri:'HIGH',tags:['cricket','world cup','icc','south africa','india','australia','sport']},
+  {date:'2027-10-28',name:"Sex Pistols Never Mind the Bollocks 50th",cat:'Historical Anniversary',mkts:['UK','GLOBAL'],region:"Global",rel:"Punk classics & culture",pri:'MEDIUM',tags:['sex pistols','punk','50th','anniversary','uk','rebellion']},
+  {date:'2027-10-29',name:"Diwali 2027",cat:'Cultural & Religious',mkts:['IN','GLOBAL','UK','AU','US'],region:"Global",rel:"Festival of lights & Bollywood playlists",pri:'HIGH',tags:['diwali','india','festival of lights','bollywood','family','celebration']},
+  {date:'2027-10-31',name:"Halloween 2027",cat:'Pop Culture',mkts:['GLOBAL'],region:"Global",rel:"Spooky season & costume playlists",pri:'HIGH',tags:['halloween','spooky','costume','party','horror','gen z']},
+  {date:'2027-11-01',end:'2027-11-02',name:"D\u00eda de Muertos 2027",cat:'Cultural & Religious',mkts:['MX','GLOBAL'],region:"Mexico",rel:"Mexican music & celebration of life",pri:'MEDIUM',tags:['dia de muertos','mexico','culture','family','tradition']},
+  {date:'2027-11-02',name:"Melbourne Cup 2027",cat:'Australia',mkts:['AU'],region:"Melbourne",rel:"Aussie culture & classic tunes",pri:'HIGH',tags:['melbourne cup','horse racing','australia','fashion','tradition','national']},
+  {date:'2027-11-25',name:"Thanksgiving (US) 2027",cat:'Public Holidays',mkts:['US'],region:"USA",rel:"Family dinner & cosy playlists",pri:'HIGH',tags:['thanksgiving','family','food','usa','holiday','cosy']},
+  {date:'2027-11-26',end:'2027-11-29',name:"Black Friday & Cyber Monday 2027",cat:'Retail & Commerce',mkts:['GLOBAL'],region:"Global",rel:"Shopping & retail activations",pri:'HIGH',tags:['black friday','cyber monday','shopping','retail','deals','sales']},
+  {date:'2027-12-01',name:"Spotify Wrapped 2027 (date TBC)",cat:'Pop Culture',mkts:['GLOBAL'],region:"Global",rel:"Our biggest owned cultural moment",pri:'HIGH',tags:['wrapped','spotify','year in review','share','social','gen z','data']},
+  {date:'2027-12-19',name:"Titanic (film) 30th Anniversary",cat:'Historical Anniversary',mkts:['GLOBAL'],region:"Global",rel:"Iconic soundtrack & 90s nostalgia",pri:'MEDIUM',tags:['titanic','30th','anniversary','film','celine dion','90s','nostalgia']},
+  {date:'2027-12-24',end:'2028-01-01',name:"Hanukkah 2027",cat:'Cultural & Religious',mkts:['US','UK','GLOBAL'],region:"Global",rel:"Festive family playlists",pri:'MEDIUM',tags:['hanukkah','jewish','festival of lights','family','holiday']},
+  {date:'2027-12-25',name:"Christmas Day 2027",cat:'Public Holidays',mkts:['GLOBAL'],region:"Global",rel:"Christmas classics & festive playlists",pri:'HIGH',tags:['christmas','holiday','festive','family','xmas','gifts']},
+  {date:'2027-12-26',name:"Boxing Day Test (MCG) 2027",cat:'Australia',mkts:['AU'],region:"Melbourne",rel:"Summer cricket & holiday playlists",pri:'HIGH',tags:['boxing day test','cricket','mcg','melbourne','australia','summer']},
+  {date:'2027-12-31',name:"New Year's Eve 2027",cat:'Public Holidays',mkts:['GLOBAL'],region:"Global",rel:"Party & countdown playlists",pri:'HIGH',tags:['nye','party','celebration','countdown','fireworks']},
 ];
 
 // Add stable IDs to every event
-const EVENTS = EVENTS_RAW.map((e, i) => ({
+const EVENTS_ALL = EVENTS_RAW.map((e, i) => ({
   ...e,
   id: `evt_${i}`
 }));
+
+// Only moments that haven't finished yet — past events are hidden from search and browse
+const TODAY_ISO = new Date().toISOString().split('T')[0];
+const EVENTS = EVENTS_ALL.filter(e => (e.end || e.date) >= TODAY_ISO);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // STOP WORDS  (excluded from keyword extraction)
@@ -1924,6 +1995,8 @@ async function rankEventsWithAI(brief, events) {
 
   const systemPrompt = `You are a cultural strategist assistant for Spotify Creative Labs. Your job is to find the most relevant cultural moments for a creative brief.
 
+Today's date is ${TODAY_ISO}. Only suggest moments that happen on or after today and within the next 12–15 months — never past events.
+
 You will be given a curated events database and a creative brief. Do two things:
 
 PART 1 — SELECT from the database: Analyse the brief carefully and extract:
@@ -2076,13 +2149,14 @@ ${JSON.stringify(eventsForAI, null, 0)}`;
 
   // Client-side tonal risk safety net — filter HIGH risk AND hard tonal rules
   const safeResults = (parsed.results || []).filter(r => r.tonal_risk !== 'HIGH' && tonalyFilter(r.name || events.find(e => e.id === r.id)?.name || '', ''));
-  const safeGenerated = (parsed.generated || []).filter(g => g.tonal_risk !== 'HIGH' && tonalyFilter(g.name, g.cat));
+  const safeGenerated = (parsed.generated || []).filter(g => g.tonal_risk !== 'HIGH' && tonalyFilter(g.name, g.cat)
+    && g.date && g.date >= TODAY_ISO.slice(0, g.date.length));
 
   // Convert generated events into result-like objects with a special marker
   const generatedResults = safeGenerated.map((g, i) => ({
     id: `generated_${i}`,
     name: g.name,
-    date: g.date || '2026-01-01',
+    date: g.date,
     cat: g.cat || 'Pop Culture',
     region: g.region || 'Global',
     mkts: g.markets || ['GLOBAL'],
@@ -2153,12 +2227,16 @@ function renderCatFilter() {
 // ─────────────────────────────────────────────────────────────────────────────
 // RENDER QUARTER FILTER
 // ─────────────────────────────────────────────────────────────────────────────
-const QUARTERS = [
-  {label:'Q1 Jan–Mar', months:[1,2,3]},
-  {label:'Q2 Apr–Jun', months:[4,5,6]},
-  {label:'Q3 Jul–Sep', months:[7,8,9]},
-  {label:'Q4 Oct–Dec', months:[10,11,12]},
-];
+const QUARTER_NAMES = ['Jan–Mar','Apr–Jun','Jul–Sep','Oct–Dec'];
+const QUARTERS = (() => {
+  const now = new Date();
+  let q = Math.floor(now.getMonth() / 3), y = now.getFullYear();
+  return Array.from({length: 4}, () => {
+    const out = {label: `Q${q+1} ${y} ${QUARTER_NAMES[q]}`, year: y, months: [q*3+1, q*3+2, q*3+3]};
+    if (++q === 4) { q = 0; y++; }
+    return out;
+  });
+})();
 
 function renderQuarterFilter() {
   const row = document.getElementById('quarter-filter-row');
@@ -2187,8 +2265,8 @@ function preFilterEvents() {
     }
     if (selectedCats.length > 0 && !selectedCats.includes(e.cat)) return false;
     if (selectedQuarters.length > 0) {
-      const month = parseInt(e.date.split('-')[1]);
-      const inQ = selectedQuarters.some(qi => QUARTERS[qi].months.includes(month));
+      const [year, month] = e.date.split('-').map(Number);
+      const inQ = selectedQuarters.some(qi => QUARTERS[qi].year === year && QUARTERS[qi].months.includes(month));
       if (!inQ) return false;
     }
     return true;
@@ -2813,18 +2891,19 @@ function renderBrowseTimeline() {
   const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   const byMonth = {};
   evts.forEach(e => {
-    const m = parseInt(e.date.split('-')[1]);
+    const m = (e.date < TODAY_ISO ? TODAY_ISO : e.date).slice(0, 7);  // YYYY-MM; ongoing events show under this month
     if (!byMonth[m]) byMonth[m] = [];
     byMonth[m].push(e);
   });
 
   timeline.innerHTML = '';
-  Object.keys(byMonth).sort((a,b)=>a-b).forEach(m => {
+  Object.keys(byMonth).sort().forEach(m => {
     const block = document.createElement('div');
     block.className = 'month-block fade-up';
     const label = document.createElement('div');
     label.className = 'month-label';
-    label.textContent = monthNames[parseInt(m)-1] + ' 2026';
+    const [yr, mo] = m.split('-');
+    label.textContent = monthNames[parseInt(mo)-1] + ' ' + yr;
     block.appendChild(label);
 
     byMonth[m].forEach(e => {
@@ -2833,7 +2912,7 @@ function renderBrowseTimeline() {
       const color = catColor(e.cat);
       const mktFlags = e.mkts.includes('GLOBAL') ? '🌍' : e.mkts.map(c => MARKETS.find(x=>x.code===c)?.flag || '').join('');
       row.innerHTML = `
-        <span class="browse-date">${formatDate(e.date).replace(' 2026','')}</span>
+        <span class="browse-date">${formatDate(e.date).replace(/ \d{4}$/,'')}</span>
         <span class="browse-dot" style="background:${color}"></span>
         <div class="browse-content">
           <div class="browse-name">${e.name}</div>
