@@ -9,15 +9,16 @@ exports.handler = async (event) => {
     return { statusCode: 200, headers: CORS, body: '' };
   }
 
-  // Strip the /api/bandsintown prefix to get the Bandsintown path
-  // e.g. /api/bandsintown/artists/Billie%20Eilish/events → /artists/Billie%20Eilish/events
-  const rawPath = event.path || '';
-  const bandsintownPath = rawPath.replace(/^\/?api\/bandsintown/, '') || '/';
+  const apiKey = process.env.TICKETMASTER_API_KEY;
+  if (!apiKey) {
+    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: 'TICKETMASTER_API_KEY not set' }) };
+  }
 
+  // Forward all query params from the request, inject the real API key
   const params = new URLSearchParams(event.queryStringParameters || {});
-  params.set('app_id', process.env.BANDSINTOWN_APP_ID || 'orbit_spotify_creative_labs');
+  params.set('apikey', apiKey);
 
-  const url = `https://rest.bandsintown.com${bandsintownPath}?${params}`;
+  const url = `https://app.ticketmaster.com/discovery/v2/events.json?${params}`;
 
   try {
     const resp = await fetch(url);

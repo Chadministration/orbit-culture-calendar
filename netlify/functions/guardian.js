@@ -9,15 +9,15 @@ exports.handler = async (event) => {
     return { statusCode: 200, headers: CORS, body: '' };
   }
 
-  // Strip the /api/bandsintown prefix to get the Bandsintown path
-  // e.g. /api/bandsintown/artists/Billie%20Eilish/events → /artists/Billie%20Eilish/events
-  const rawPath = event.path || '';
-  const bandsintownPath = rawPath.replace(/^\/?api\/bandsintown/, '') || '/';
+  const apiKey = process.env.GUARDIAN_API_KEY;
+  if (!apiKey) {
+    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: 'GUARDIAN_API_KEY not set' }) };
+  }
 
   const params = new URLSearchParams(event.queryStringParameters || {});
-  params.set('app_id', process.env.BANDSINTOWN_APP_ID || 'orbit_spotify_creative_labs');
+  params.set('api-key', apiKey);
 
-  const url = `https://rest.bandsintown.com${bandsintownPath}?${params}`;
+  const url = `https://content.guardianapis.com/search?${params}`;
 
   try {
     const resp = await fetch(url);

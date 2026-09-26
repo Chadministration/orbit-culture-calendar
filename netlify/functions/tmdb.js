@@ -9,15 +9,19 @@ exports.handler = async (event) => {
     return { statusCode: 200, headers: CORS, body: '' };
   }
 
-  // Strip the /api/bandsintown prefix to get the Bandsintown path
-  // e.g. /api/bandsintown/artists/Billie%20Eilish/events → /artists/Billie%20Eilish/events
-  const rawPath = event.path || '';
-  const bandsintownPath = rawPath.replace(/^\/?api\/bandsintown/, '') || '/';
+  const apiKey = process.env.TMDB_API_KEY;
+  if (!apiKey) {
+    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: 'TMDB_API_KEY not set' }) };
+  }
 
   const params = new URLSearchParams(event.queryStringParameters || {});
-  params.set('app_id', process.env.BANDSINTOWN_APP_ID || 'orbit_spotify_creative_labs');
+  params.set('api_key', apiKey);
 
-  const url = `https://rest.bandsintown.com${bandsintownPath}?${params}`;
+  // Path after /api/tmdb becomes the TMDB endpoint, e.g. /discover/movie
+  const rawPath = event.path || '';
+  const tmdbPath = rawPath.replace(/^\/?api\/tmdb/, '') || '/discover/movie';
+
+  const url = `https://api.themoviedb.org/3${tmdbPath}?${params}`;
 
   try {
     const resp = await fetch(url);

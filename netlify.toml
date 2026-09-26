@@ -1,5 +1,5 @@
 [build.environment]
-  SECRETS_SCAN_ENABLED = "false"
+  SECRETS_SCAN_OMIT_KEYS = "BANDSINTOWN_APP_ID"
   [build]
   functions = "netlify/functions"
   publish = "."

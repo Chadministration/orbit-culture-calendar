@@ -1834,7 +1834,7 @@ async function fetchBandsintownGigs(artists, markets) {
 }
 
 async function fetchGuardianNews(brief, markets) {
-  if (!GUARDIAN_API_KEY) return [];
+  if (!IS_NETLIFY && !GUARDIAN_API_KEY) return [];
   try {
     // Extract key terms from brief for search
     const terms = brief.split(/\s+/).slice(0, 5).join(' ');
