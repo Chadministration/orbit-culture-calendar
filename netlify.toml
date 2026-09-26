@@ -30,3 +30,8 @@
   to = "/.netlify/functions/tmdb"
   status = 200
   force = true
+
+[[redirects]]
+  from = "/api/calendar"
+  to = "/.netlify/functions/calendar"
+  status = 200
