@@ -1492,7 +1492,7 @@ const STOP = new Set(['a','an','the','and','or','but','in','on','at','to','for',
 function formatDate(d) {
   const [y,m,day] = d.split('-');
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  return `${parseInt(day)} ${months[parseInt(m)-1]} ${y}`;
+  return day ? `${parseInt(day)} ${months[parseInt(m)-1]} ${y}` : `${months[parseInt(m)-1]} ${y}`;
 }
 
 function getEventMarkets(event) {
