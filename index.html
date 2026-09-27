@@ -2275,6 +2275,18 @@ function fitsMarkets(e, markets) {
   return mkts.includes('GLOBAL') && e.pri === 'HIGH';
 }
 
+// The AI sometimes returns the same moment twice (same id, or DB + generated copy)
+function uniqueMoment() {
+  const seen = new Set();
+  const norm = n => (n || '').toLowerCase().replace(/\b20\d\d\b|\(.*?\)/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+  return ({ event }) => {
+    const keys = [event.id, norm(event.name)];
+    if (keys.some(k => seen.has(k))) return false;
+    keys.forEach(k => seen.add(k));
+    return true;
+  };
+}
+
 function timingBadge(e) {
   if (!e.timing) return '';
   const wk = Math.max(1, Math.round(e.timing.days / 7));
@@ -2878,7 +2890,7 @@ async function runSearch() {
       ...generatedRanked,
       ...gigRanked,
       ...dbRanked.slice(3)
-    ].filter(fits);
+    ].filter(fits).filter(uniqueMoment());
 
     grid.innerHTML = '';
 
