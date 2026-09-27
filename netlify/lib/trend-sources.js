@@ -65,7 +65,48 @@ async function reddit(subs) {
   })).filter(p => p.title.length > 10);
 }
 
+// Wikipedia pages spiking in a country: views on the latest published day vs the 7 days before.
+// Wikimedia publishes per-country data ~2 days late, so we step back until a day exists.
+const WIKI_SKIP = /^(Main_Page|Special:|Wikipedia:|Portal:|File:|Help:|Talk:|Category:|Template:|User:)|^Deaths_in|^List_of|^\d{4}$|porn|xxx|xhamster|onlyfans|^Sex|Cleavage|^-$/i;
+
+async function wikiDay(market, date) {
+  const [y, m, d] = date.toISOString().slice(0, 10).split('-');
+  const r = await fetch(`https://wikimedia.org/api/rest_v1/metrics/pageviews/top-per-country/${GEO[market] || market}/all-access/${y}/${m}/${d}`, { headers: UA });
+  if (!r.ok) return null;
+  return (await r.json()).items?.[0]?.articles || null;
+}
+
+async function wikipediaRising(market) {
+  let latest, day;
+  for (let back = 1; back <= 4 && !latest; back++) {
+    day = new Date(Date.now() - back * 864e5);
+    latest = await wikiDay(market, day);
+  }
+  if (!latest) throw new Error(`Wikipedia ${market} → no recent data`);
+  const prior = (await Promise.all([1, 2, 3, 4, 5, 6, 7].map(k => wikiDay(market, new Date(day - k * 864e5))))).filter(Boolean);
+  const history = prior.map(list => ({ views: new Map(list.map(a => [`${a.project}|${a.article}`, a.views_ceil])), floor: list[list.length - 1]?.views_ceil || 0 }));
+  return latest
+    .filter(a => a.rank <= 300 && !WIKI_SKIP.test(a.article))
+    .map(a => {
+      const key = `${a.project}|${a.article}`;
+      // Not in a day's top list → it had at most that day's lowest count
+      const base = history.length ? history.reduce((sum, h) => sum + (h.views.get(key) ?? h.floor), 0) / history.length : a.views_ceil;
+      return { a, ratio: a.views_ceil / Math.max(base, 1) };
+    })
+    .filter(x => x.ratio >= 2.5)
+    .sort((x, y) => y.ratio * Math.log(y.a.views_ceil) - x.ratio * Math.log(x.a.views_ceil))
+    .slice(0, 15)
+    .map(({ a, ratio }) => ({
+      title: a.article.replace(/_/g, ' '),
+      views: a.views_ceil,
+      ratio: Math.round(ratio * 10) / 10,
+      date: day.toISOString().slice(0, 10),
+      url: `https://${a.project}.org/wiki/${a.article}`,
+      market,
+    }));
+}
+
 const settledValues = async (promises) =>
   (await Promise.allSettled(promises)).flatMap(r => (r.status === 'fulfilled' ? r.value : []));
 
-module.exports = { MARKETS, googleTrends, youtube, bluesky, reddit, settledValues };
+module.exports = { MARKETS, googleTrends, youtube, bluesky, reddit, wikipediaRising, settledValues };

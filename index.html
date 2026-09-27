@@ -1646,59 +1646,6 @@ async function fetchTicketmasterEvents(markets, startDate, endDate) {
 
 const GUARDIAN_API_KEY = ''; // set in Netlify env vars
 
-async function fetchWikipediaTrending(markets) {
-  try {
-    // Map market codes to Wikipedia language editions
-    const wikiLang = {
-      'AU': 'en', 'US': 'en', 'UK': 'en', 'IN': 'en',
-      'DE': 'de', 'FR': 'fr', 'JP': 'ja', 'BR': 'pt',
-      'MX': 'es', 'AR': 'es', 'SE': 'sv', 'ZA': 'en'
-    };
-    const langs = [...new Set(
-      (markets.length > 0 ? markets : ['AU','US','UK'])
-        .map(m => wikiLang[m] || 'en')
-    )].slice(0, 2);
-
-    const yesterday = new Date(Date.now() - 86400000);
-    const y = yesterday.getFullYear();
-    const mo = String(yesterday.getMonth()+1).padStart(2,'0');
-    const d = String(yesterday.getDate()).padStart(2,'0');
-
-    const results = [];
-    for (const lang of langs) {
-      const url = `https://wikimedia.org/api/rest_v1/metrics/pageviews/top/${lang}.wikipedia/all-access/${y}/${mo}/${d}`;
-      const resp = await fetch(url, { headers: { 'User-Agent': 'OrbitSpotify/1.0' } });
-      if (!resp.ok) continue;
-      const data = await resp.json();
-      const articles = data.items?.[0]?.articles || [];
-      // Filter out meta pages, take top 20
-      const filtered = articles
-        .filter(a => !['Main_Page','Special:','Wikipedia:','Help:','Portal:','File:'].some(x => a.article.startsWith(x)))
-        .slice(0, 20);
-
-      filtered.forEach(a => {
-        results.push({
-          id: 'wiki_' + a.article,
-          name: a.article.replace(/_/g, ' '),
-          date: `${y}-${mo}-${d}`,
-          cat: 'Pop Culture',
-          region: lang === 'en' ? 'Global' : lang.toUpperCase(),
-          mkts: markets.length > 0 ? markets : ['GLOBAL'],
-          rel: `Trending on Wikipedia — ${a.views.toLocaleString()} views`,
-          pri: a.rank <= 5 ? 'HIGH' : 'MEDIUM',
-          tags: [],
-          isLive: true,
-          source: 'Wikipedia Trending'
-        });
-      });
-    }
-    return results;
-  } catch (e) {
-    console.warn('Wikipedia trending fetch failed:', e);
-    return [];
-  }
-}
-
 // ── INDUSTRY → SUBREDDIT MAP ──────────────────────────────────────────────
 const INDUSTRY_SUBREDDITS = {
   'food':       ['australia','food','AustralianFood','sydney','melbourne','melbourne_food','sydney_eats','drinkingrecipes','boba'],
@@ -1813,7 +1760,18 @@ async function fetchTrending(brief, markets) {
       tags: [...base.tags, 'sustained trend', 'this week'],
       source: t.source, url: t.url,
     }));
-    return [...rising, ...google, ...yt, ...bsky, ...reddit];
+    const wiki = (d.wikipedia || []).map(w => ({
+      ...base,
+      id: `wikirise_${w.market}_${w.title}`.replace(/\W+/g, '_'),
+      name: `Spiking on Wikipedia: ${trim(w.title)}`,
+      date: w.date,
+      region: MARKETS.find(m => m.code === w.market)?.name || w.market,
+      mkts: [w.market],
+      rel: `${w.views.toLocaleString()} views in ${MARKETS.find(m => m.code === w.market)?.name || w.market} · ${w.ratio}× its usual traffic`,
+      pri: w.ratio >= 10 ? 'HIGH' : 'MEDIUM',
+      source: 'Wikipedia', url: w.url,
+    }));
+    return [...rising, ...google, ...yt, ...wiki, ...bsky, ...reddit];
   } catch (e) {
     console.warn('Trending fetch failed:', e);
     return [];
@@ -2859,18 +2817,17 @@ async function runSearch() {
     const candidateEvents = preFilterEvents();
 
     // Fetch live events in parallel
-    document.querySelector('.loading-text').textContent = 'Pulling live data: Google Trends, YouTube, Bluesky, Reddit, holidays, anniversaries & more…';
-    const [tmEvents, tmdbEvents, wikiEvents, guardianEvents, redditEvents, calendarEvents, albumEvents] = await Promise.all([
+    document.querySelector('.loading-text').textContent = 'Pulling live data: Google Trends, YouTube, Wikipedia, Bluesky, Reddit, holidays & more…';
+    const [tmEvents, tmdbEvents, guardianEvents, trendEvents, calendarEvents, albumEvents] = await Promise.all([
       fetchTicketmasterEvents(selectedMarkets),
       fetchTMDBReleases(),
-      fetchWikipediaTrending(selectedMarkets),
       fetchGuardianNews(brief, selectedMarkets),
       fetchTrending(brief, selectedMarkets),
       fetchCalendarDates(selectedMarkets),
       fetchAlbumAnniversaries()
     ]);
     const liveEvents = [
-      ...tmEvents, ...tmdbEvents, ...wikiEvents, ...guardianEvents, ...redditEvents,
+      ...tmEvents, ...tmdbEvents, ...guardianEvents, ...trendEvents,
       ...dedupeAgainst(candidateEvents, [...calendarEvents, ...albumEvents])
     ];
 

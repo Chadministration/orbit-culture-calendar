@@ -1,8 +1,9 @@
-// What the internet is talking about: live right now (Google Trends, YouTube, Bluesky, Reddit)
+// What the internet is talking about: live right now (Google Trends, YouTube, Bluesky, Reddit,
+// Wikipedia pages spiking per country)
 // plus what has been trending for many hours this week (from the hourly trend-snapshot job).
 // Cached at Netlify's edge for an hour.
 const { getStore, connectLambda } = require('@netlify/blobs');
-const { MARKETS, googleTrends, youtube, bluesky, reddit, settledValues } = require('../lib/trend-sources');
+const { MARKETS, googleTrends, youtube, bluesky, reddit, wikipediaRising, settledValues } = require('../lib/trend-sources');
 
 const MIN_HOURS = 6;  // "trending all week" = seen in at least this many hourly snapshots
 
@@ -25,6 +26,7 @@ exports.handler = async (event) => {
   const sources = {
     google: settledValues(markets.map(googleTrends)),
     youtube: settledValues(markets.map(youtube)),
+    wikipedia: settledValues(markets.map(wikipediaRising)),
     bluesky: bluesky(),
     reddit: subs.length ? reddit(subs) : Promise.resolve([]),
     rising: risingThisWeek(event, markets),
