@@ -1753,59 +1753,47 @@ function getSubredditsForBrief(brief) {
   return [...subs].slice(0, 6); // limit to 6 subreddits
 }
 
-async function fetchRedditTrending(brief, markets) {
+// Internet trends right now via /api/trending: Google Trends (per market), Bluesky, Reddit
+async function fetchTrending(brief, markets) {
   try {
-    const subreddits = getSubredditsForBrief(brief);
-    const briefTerms = brief.split(/\s+/)
-      .filter(w => w.length > 4 && !STOP.has(w.toLowerCase()))
-      .slice(0, 4)
-      .join(' ');
-
-    // Two parallel fetches: broad search + top subreddit posts
-    const searchUrl = `https://www.reddit.com/search.json?q=${encodeURIComponent(briefTerms)}&sort=hot&limit=10&t=month`;
-    const subUrl    = `https://www.reddit.com/r/${subreddits.slice(1,3).join('+')}/hot.json?limit=15`;
-
-    const [searchResp, subResp] = await Promise.allSettled([
-      fetch(searchUrl, { headers: { 'Accept': 'application/json' } }),
-      fetch(subUrl,    { headers: { 'Accept': 'application/json' } })
-    ]);
-
-    const posts = [];
-    if (searchResp.status === 'fulfilled' && searchResp.value.ok) {
-      const d = await searchResp.value.json();
-      (d.data?.children || []).forEach(c => posts.push(c.data));
-    }
-    if (subResp.status === 'fulfilled' && subResp.value.ok) {
-      const d = await subResp.value.json();
-      (d.data?.children || []).forEach(c => posts.push(c.data));
-    }
-
-    // Filter: min 50 upvotes, not stickied, has a real title
-    const filtered = posts
-      .filter(p => p.score >= 50 && !p.stickied && p.title?.length > 10)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 8);
-
-    return filtered.map(p => {
-      const postDate = new Date(p.created_utc * 1000).toISOString().split('T')[0];
-      const engagement = p.score >= 5000 ? 'HIGH' : p.score >= 500 ? 'MEDIUM' : 'LOW';
-      return {
-        id: 'reddit_' + p.id,
-        name: p.title.length > 70 ? p.title.slice(0, 67) + '…' : p.title,
-        date: postDate,
-        cat: 'Pop Culture',
-        region: 'r/' + p.subreddit,
-        mkts: markets.length > 0 ? markets : ['GLOBAL'],
-        rel: `${p.score.toLocaleString()} upvotes · ${p.num_comments} comments on r/${p.subreddit}`,
-        pri: engagement,
-        tags: ['reddit','trending','social media','internet culture','viral','community'],
-        isLive: true,
-        source: 'Reddit',
-        url: 'https://reddit.com' + p.permalink
-      };
-    });
-  } catch(e) {
-    console.warn('Reddit fetch failed:', e);
+    const subs = getSubredditsForBrief(brief).slice(0, 6);
+    const resp = await fetch(`/api/trending?markets=${encodeURIComponent(markets.join(','))}&subs=${encodeURIComponent(subs.join(','))}`);
+    if (!resp.ok) return [];
+    const d = await resp.json();
+    if (d.errors?.length) console.warn('Trending sources failed:', d.errors);
+    const trim = t => (t.length > 70 ? t.slice(0, 67) + '…' : t);
+    const base = { date: TODAY_ISO, cat: 'Pop Culture', isLive: true, isTrending: true,
+                   tags: ['trending', 'internet culture', 'viral', 'right now', 'social media'] };
+    const google = (d.google || []).map((t, i) => ({
+      ...base,
+      id: `gtrend_${t.market}_${t.title}`.replace(/\W+/g, '_'),
+      name: `Trending search: ${trim(t.title)}`,
+      region: MARKETS.find(m => m.code === t.market)?.name || t.market,
+      mkts: [t.market],
+      rel: `${t.traffic.toLocaleString()}+ Google searches today${t.headline ? ' · ' + t.headline : ''}`,
+      pri: t.traffic >= 20000 ? 'HIGH' : t.traffic >= 2000 ? 'MEDIUM' : 'LOW',
+      source: 'Google Trends', url: t.url,
+    }));
+    const bsky = (d.bluesky || []).map(t => ({
+      ...base,
+      id: `bsky_${t.title}`.replace(/\W+/g, '_'),
+      name: `Trending on Bluesky: ${trim(t.title)}`,
+      region: 'Global', mkts: ['GLOBAL'],
+      rel: t.headline, pri: 'MEDIUM', source: 'Bluesky', url: t.url,
+    }));
+    const reddit = (d.reddit || []).slice(0, 10).map((p, i) => ({
+      ...base,
+      id: `reddit_${p.url}`.replace(/\W+/g, '_').slice(0, 80),
+      name: trim(p.title),
+      date: p.updated || TODAY_ISO,
+      region: 'r/' + p.sub,
+      mkts: markets.length ? markets : ['GLOBAL'],
+      rel: `Hot right now on r/${p.sub}`,
+      pri: i < 3 ? 'MEDIUM' : 'LOW', source: 'Reddit', url: p.url,
+    }));
+    return [...google, ...bsky, ...reddit];
+  } catch (e) {
+    console.warn('Trending fetch failed:', e);
     return [];
   }
 }
@@ -2119,7 +2107,7 @@ Return ONLY a JSON object in this exact format:
   "brand_category": "ONE of: health, charity, alcohol, non-alcoholic drinks, food & beverage, travel, fashion, tech, finance, automotive, entertainment, retail, other",
   "relevant_artists": ["Artist or Band Name", "Artist or Band Name", ...],
   "results": [
-    {"id": "event_id", "reason": "1-2 sentence explanation of why this event is relevant to this specific brief", "tonal_risk": "LOW|MEDIUM|HIGH"},
+    {"id": "event_id", "reason": "1-2 sentence explanation of why this event is relevant to this specific brief", "fit": "direct|stretch", "tonal_risk": "LOW|MEDIUM|HIGH"},
     ...
   ],
   "generated": [
@@ -2131,6 +2119,7 @@ Return ONLY a JSON object in this exact format:
       "markets": ["AU","US","UK","GLOBAL", etc],
       "reason": "1-2 sentence explanation of why this is relevant to the brief",
       "confidence": "high|medium",
+      "fit": "direct|stretch",
       "scale": "major|minor — major = big enough that it would realistically be called out in a pitch in ANY market (e.g. Super Bowl, Halloween, Grammys); minor = niche or mostly local",
       "tonal_risk": "LOW|MEDIUM|HIGH"
     },
@@ -2142,6 +2131,8 @@ For "relevant_artists": list 8-12 musical artists or bands whose fanbase, genre,
 
 TIMING: Prefer moments inside the campaign window. Moments a few weeks either side are OK (they'll be flagged). Don't include moments months outside the window.
 MARKETS: If specific markets are selected, prefer moments in those markets. Only include a global or other-market moment if it's big enough that it would realistically be called out in a pitch to this client in the selected market.
+FIT: Rate every pick. "direct" = you can name a specific, concrete link to THIS brief's product, category, audience or campaign themes in one sentence (e.g. World Coffee Day for a brand launching iced coffees; a gaming expo for a Gen Z audience). "stretch" = the link is only generic reach, "people attend it", or "could be creatively linked". Be strict: fashion weeks, business planning, generic "season" moments and cruise/travel weeks are "stretch" for a fast-food drinks launch. Stretch picks outside the selected markets will be removed.
+TRENDING: Items tagged "trending" are what people are searching/posting about right now. Include one only if it's a direct fit and brand-safe (skip news about crime, deaths, politics, or individual private people).
 
 IMPORTANT: Only include results with tonal_risk "LOW" or "MEDIUM". Do NOT include any event with tonal_risk "HIGH" in your results array.
 
@@ -2229,6 +2220,7 @@ ${JSON.stringify(eventsForAI, null, 0)}`;
     tags: [],
     isGenerated: true,
     confidence: g.confidence || 'medium',
+    fit: g.fit,
     reason: g.reason,
     tonal_risk: g.tonal_risk || 'LOW'
   }));
@@ -2267,12 +2259,14 @@ function tagTiming(e, w) {
   return true;
 }
 
-// With markets selected: keep events in those markets; global ones only if they're big (HIGH priority)
-function fitsMarkets(e, markets) {
-  if (!markets.length) return true;
+// With markets selected: keep events in those markets; global ones only if they're big
+// (HIGH priority, or trending) AND the AI rated them a direct fit to the brief
+function fitsMarkets(e, markets, fit) {
+  if (e.isTrending && fit !== 'direct') return false;  // trends only when clearly on-brief
+  if (!markets.length) return fit !== 'stretch' || e.pri === 'HIGH';
   const mkts = e.mkts || [];
   if (mkts.some(m => markets.includes(m))) return true;
-  return mkts.includes('GLOBAL') && e.pri === 'HIGH';
+  return mkts.includes('GLOBAL') && (e.pri === 'HIGH' || e.isTrending) && fit === 'direct';
 }
 
 // The AI sometimes returns the same moment twice (same id, or DB + generated copy)
@@ -2843,13 +2837,13 @@ async function runSearch() {
     const candidateEvents = preFilterEvents();
 
     // Fetch live events in parallel
-    document.querySelector('.loading-text').textContent = 'Pulling live data: holidays, album anniversaries, TMDB, Guardian & more…';
+    document.querySelector('.loading-text').textContent = 'Pulling live data: Google Trends, Bluesky, Reddit, holidays, anniversaries, TMDB & more…';
     const [tmEvents, tmdbEvents, wikiEvents, guardianEvents, redditEvents, calendarEvents, albumEvents] = await Promise.all([
       fetchTicketmasterEvents(selectedMarkets),
       fetchTMDBReleases(),
       fetchWikipediaTrending(selectedMarkets),
       fetchGuardianNews(brief, selectedMarkets),
-      fetchRedditTrending(brief, selectedMarkets),
+      fetchTrending(brief, selectedMarkets),
       fetchCalendarDates(selectedMarkets),
       fetchAlbumAnniversaries()
     ]);
@@ -2877,14 +2871,14 @@ async function runSearch() {
 
     const dbRanked = dbResults
       .filter(r => eventById[r.id])
-      .map(r => ({ event: eventById[r.id], reason: r.reason }))
+      .map(r => ({ event: eventById[r.id], reason: r.reason, fit: r.fit }))
       .filter(({ event }) => _tonalyFilter(event.name, event.cat));
 
     // Merge generated events and gig events (interleaved after top 3 DB results)
-    const generatedRanked = generatedEvents.map(e => ({ event: e, reason: e.reason }));
+    const generatedRanked = generatedEvents.map(e => ({ event: e, reason: e.reason, fit: e.fit }));
     const gigRanked = gigEvents.map(e => ({ event: e, reason: `Live ${e.artistName} show in ${e.region} — a direct audience activation opportunity.` }));
     const window_ = resolveCampaignWindow(campaignWindow);
-    const fits = ({ event }) => fitsMarkets(event, selectedMarkets) && tagTiming(event, window_);
+    const fits = ({ event, fit }) => fitsMarkets(event, selectedMarkets, fit) && tagTiming(event, window_);
     const rankedEvents = [
       ...dbRanked.slice(0, 3),
       ...generatedRanked,
