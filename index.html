@@ -258,6 +258,29 @@ nav {
 .month-chip.active { background: var(--dark-grey); border-color: var(--grey); color: var(--white); }
 
 /* Search button */
+/* ── TIMELINE VIEW ──────────────────────── */
+#timeline-container { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 18px 18px 10px; overflow-x: auto; }
+.tl { position: relative; min-width: 720px; }
+.tl-axis { position: relative; height: 28px; border-bottom: 1px solid var(--border); }
+.tl-month { position: absolute; top: 0; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--grey); padding-left: 6px; border-left: 1px solid var(--border); height: 100%; }
+.tl-body { position: relative; }
+.tl-band { position: absolute; top: 0; bottom: 0; background: rgba(30,215,96,.07); border-left: 1px solid rgba(30,215,96,.45); border-right: 1px solid rgba(30,215,96,.45); }
+.tl-band-label { position: absolute; top: 6px; left: 8px; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--green); white-space: nowrap; }
+.tl-buffer { position: absolute; top: 0; bottom: 0; background: repeating-linear-gradient(135deg, rgba(251,191,36,.07) 0 6px, transparent 6px 12px); }
+.tl-today { position: absolute; top: 0; bottom: 0; width: 0; border-left: 1px dashed rgba(255,255,255,.35); }
+.tl-today span { position: absolute; bottom: 4px; left: 4px; font-size: 10px; color: var(--grey); white-space: nowrap; }
+.tl-item { position: absolute; height: 34px; display: flex; align-items: center; gap: 8px; cursor: pointer; white-space: nowrap; }
+.tl-mark { position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 10px; height: 10px; border-radius: 50%; }
+.tl-label { position: relative; font-size: 12.5px; font-weight: 600; color: #fff; background: rgba(10,10,10,.8); border: 1px solid var(--border); border-radius: 500px; padding: 4px 10px 4px 8px; display: flex; gap: 6px; align-items: center; }
+.tl-item:hover .tl-label, .tl-item.sel .tl-label { border-color: var(--grey); }
+.tl-label .n { font-size: 10px; font-weight: 800; color: var(--grey); }
+.tl-label .d { font-size: 11px; font-weight: 500; color: var(--grey); }
+.tl-legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 11px; color: var(--grey); padding: 10px 2px 4px; }
+.tl-legend i { display: inline-block; width: 12px; height: 8px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+#timeline-detail { display: none; margin-top: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; gap: 12px; flex-direction: column; animation: fadeUp .25s ease both; }
+#timeline-detail.visible { display: flex; }
+.tl-bar { position: absolute; height: 8px; border-radius: 500px; opacity: .5; }
+
 /* ── ACTIVATION + SHORTLIST ─────────────── */
 .card-activation { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: rgba(30,215,96,.07); border: 1px solid rgba(30,215,96,.22); }
 .act-k { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--green); }
@@ -908,16 +931,16 @@ footer {
   margin-bottom: 24px;
 }
 #constellation-detail.visible { display: flex; }
-#constellation-detail .detail-name { font-size: 22px; font-weight: 800; line-height: 1.2; }
-#constellation-detail .detail-meta { font-size: 13px; color: var(--grey); }
-#constellation-detail .detail-reason {
+:is(#constellation-detail, #timeline-detail) .detail-name { font-size: 22px; font-weight: 800; line-height: 1.2; }
+:is(#constellation-detail, #timeline-detail) .detail-meta { font-size: 13px; color: var(--grey); }
+:is(#constellation-detail, #timeline-detail) .detail-reason {
   font-size: 14px; color: var(--white); line-height: 1.6;
   background: rgba(29,185,84,0.07);
   border-left: 2px solid var(--green);
   padding: 10px 14px;
   border-radius: 0 8px 8px 0;
 }
-#constellation-detail .detail-markets { display: flex; flex-wrap: wrap; gap: 6px; }
+:is(#constellation-detail, #timeline-detail) .detail-markets { display: flex; flex-wrap: wrap; gap: 6px; }
 
 .view-toggle-row {
   display: flex; gap: 8px; margin-bottom: 20px;
@@ -1003,12 +1026,15 @@ footer {
   </div>
   <div class="view-toggle-row" id="view-toggle-row" style="display:none">
     <button class="view-toggle-btn active" id="orbit-view-btn">◉ Orbit view</button>
+    <button class="view-toggle-btn" id="timeline-view-btn">▭ Timeline</button>
     <button class="view-toggle-btn" id="list-view-btn">◫ List view</button>
   </div>
   <div id="constellation-container" style="display:none">
     <svg id="constellation-svg" viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg"></svg>
   </div>
   <div id="constellation-detail"></div>
+  <div id="timeline-container" style="display:none"></div>
+  <div id="timeline-detail"></div>
   <div class="cards-grid" id="cards-grid"></div>
 </section>
 
@@ -2804,6 +2830,98 @@ function extractClientName(brief) {
 let currentView = 'orbit'; // 'orbit' or 'list'
 let _tonalyFilter = () => true; // replaced after each AI call with brand-aware filter
 
+// ─────────────────────────────────────────────────────────────────────────────
+// TIMELINE VIEW — moments plotted against the campaign window and its buffer
+// ─────────────────────────────────────────────────────────────────────────────
+function renderTimeline(rankedEvents, w) {
+  const box = document.getElementById('timeline-container');
+  const detail = document.getElementById('timeline-detail');
+  detail.classList.remove('visible'); detail.innerHTML = '';
+  const day = iso => new Date((iso.length === 7 ? iso + '-01' : iso) + 'T00:00:00Z').getTime();
+  const iso = t => new Date(t).toISOString().slice(0, 10);
+  const buf = WINDOW_BUFFER_DAYS * DAY_MS;
+  const starts = rankedEvents.map(({ event }) => Math.max(day(event.date), day(TODAY_ISO)));
+  const ends = rankedEvents.map(({ event }) => day(event.end || event.date));
+  let t0 = Math.min(day(w.start) - buf, ...starts), t1 = Math.max(day(w.end) + buf, ...ends);
+  t0 = Math.max(t0, day(TODAY_ISO) - 3 * DAY_MS);
+  t1 += 4 * DAY_MS;
+  const pct = t => ((t - t0) / (t1 - t0)) * 100;
+  const width = Math.max(box.clientWidth || 900, 720);
+
+  // Greedy lanes so labels don't overlap
+  const LANE_H = 42;
+  const items = rankedEvents.map(({ event, reason }, i) => {
+    const s = Math.max(day(event.date), t0), e = Math.max(day(event.end || event.date), s);
+    const labelPct = ((event.name.length + (event.end ? 22 : 12)) * 6.8 + 40) / width * 100;
+    return { event, reason, rank: i + 1, s, e, x0: pct(s), x1: Math.max(pct(e), pct(s) + labelPct) };
+  }).sort((a, b) => a.s - b.s || a.rank - b.rank);
+  const laneEnds = [];
+  items.forEach(it => {
+    let lane = laneEnds.findIndex(end => end + 0.8 < it.x0);
+    if (lane === -1) { lane = laneEnds.length; laneEnds.push(0); }
+    laneEnds[lane] = it.x1; it.lane = lane;
+  });
+  const bodyH = Math.max(laneEnds.length, 3) * LANE_H + 36;
+
+  // Month ticks
+  const months = [];
+  const m = new Date(t0); m.setUTCDate(1); m.setUTCHours(0, 0, 0, 0);
+  if (m.getTime() < t0) m.setUTCMonth(m.getUTCMonth() + 1);
+  for (; m.getTime() <= t1; m.setUTCMonth(m.getUTCMonth() + 1)) months.push(m.getTime());
+  const monthName = t => new Date(t).toLocaleString('en', { month: 'short', timeZone: 'UTC' }) + (new Date(t).getUTCMonth() === 0 ? ' ' + new Date(t).getUTCFullYear() : '');
+
+  const ws = day(w.start), we = day(w.end);
+  box.innerHTML = `
+    <div class="tl" style="min-width:${Math.max(720, items.length * 40)}px">
+      <div class="tl-axis">${months.map(t => `<div class="tl-month" style="left:${pct(t)}%">${monthName(t)}</div>`).join('')}</div>
+      <div class="tl-body" style="height:${bodyH}px">
+        <div class="tl-buffer" style="left:${pct(Math.max(ws - buf, t0))}%;width:${pct(ws) - pct(Math.max(ws - buf, t0))}%"></div>
+        <div class="tl-buffer" style="left:${pct(we)}%;width:${pct(Math.min(we + buf, t1)) - pct(we)}%"></div>
+        <div class="tl-band" style="left:${pct(ws)}%;width:${pct(we) - pct(ws)}%"><span class="tl-band-label">${w.fromBrief ? 'Campaign window' : 'Next 3 months'}</span></div>
+        <div class="tl-today" style="left:${pct(day(TODAY_ISO))}%"><span>Today</span></div>
+        ${items.map((it, i) => {
+          const c = catColor(it.event.cat);
+          const top = 28 + it.lane * LANE_H;
+          const barW = pct(it.e) - pct(it.s);
+          return (barW > 0.6 ? `<div class="tl-bar" style="left:${it.x0}%;width:${barW}%;top:${top + 13}px;background:${c}"></div>` : '') +
+            `<div class="tl-item" data-i="${i}" style="left:${it.x0}%;top:${top}px">
+              <span class="tl-mark" style="background:${c}"></span>
+              <span class="tl-label" style="margin-left:16px"><span class="n">${String(it.rank).padStart(2, '0')}</span>${escHtml(it.event.name)}<span class="d">${formatDate(it.event.date).replace(/ \d{4}$/, '')}${it.event.end ? '–' + formatDate(it.event.end).replace(/ \d{4}$/, '') : ''}</span></span>
+            </div>`;
+        }).join('')}
+      </div>
+      <div class="tl-legend"><span><i style="background:rgba(30,215,96,.35)"></i>${w.fromBrief ? 'Campaign window' : 'Next 3 months'}</span><span><i style="background:repeating-linear-gradient(135deg,rgba(251,191,36,.5) 0 3px,transparent 3px 6px)"></i>±3-week buffer (flagged)</span><span>Bars = multi-day moments · click any moment for details</span></div>
+    </div>`;
+
+  box.querySelectorAll('.tl-item').forEach(el => el.onclick = () => {
+    box.querySelectorAll('.tl-item').forEach(x => x.classList.remove('sel'));
+    el.classList.add('sel');
+    const { event, reason, rank } = items[+el.dataset.i];
+    detail.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--green)">✦ Rank ${rank}</span>
+        <span class="cat-badge" style="--cat-c:${catColor(event.cat)}">${catLabel(event.cat)}</span>
+      </div>
+      <div class="detail-name">${escHtml(event.name)}</div>
+      <div class="detail-meta">${formatDate(event.date)}${event.end ? ' – ' + formatDate(event.end) : ''} · ${escHtml(event.region)} ${timingBadge(event)}</div>
+      <div class="detail-reason">✦ ${escHtml(reason || event.rel || '')}</div>
+      ${activationHtml(event)}
+      <div class="card-actions"></div>`;
+    detail.querySelector('.card-actions').appendChild(starButton(event, reason));
+    detail.classList.add('visible');
+  });
+}
+
+function setView(view) {
+  currentView = view;
+  ['orbit', 'timeline', 'list'].forEach(v => document.getElementById(`${v}-view-btn`).classList.toggle('active', v === view));
+  document.getElementById('constellation-container').style.display = view === 'orbit' ? 'block' : 'none';
+  document.getElementById('constellation-detail').classList.toggle('visible', view === 'orbit' && !!document.getElementById('constellation-detail').innerHTML.trim());
+  document.getElementById('timeline-container').style.display = view === 'timeline' ? 'block' : 'none';
+  document.getElementById('timeline-detail').classList.toggle('visible', view === 'timeline' && !!document.getElementById('timeline-detail').innerHTML.trim());
+  document.getElementById('cards-grid').style.display = view === 'list' ? '' : 'none';
+}
+
 function renderConstellation(rankedEvents, brief) {
   const svg = document.getElementById('constellation-svg');
   const container = document.getElementById('constellation-container');
@@ -3221,8 +3339,11 @@ async function runSearch() {
       title.innerHTML = 'No moments found';
       meta.textContent = 'Try broadening your brief or adjusting your filters.';
       document.getElementById('view-toggle-row').style.display = 'none';
+      grid.style.display = '';
       document.getElementById('constellation-container').style.display = 'none';
       document.getElementById('constellation-detail').classList.remove('visible');
+    document.getElementById('timeline-container').style.display = 'none';
+    document.getElementById('timeline-detail').classList.remove('visible');
       grid.innerHTML = `
         <div class="empty-state" style="grid-column:1/-1">
           <div class="emoji">🔍</div>
@@ -3238,13 +3359,12 @@ async function runSearch() {
       document.getElementById('meta-edit')?.addEventListener('click', () =>
         document.getElementById('brief-summary').scrollIntoView({ behavior: 'smooth', block: 'center' }));
 
-      // Show constellation by default
-      currentView = 'orbit';
+      // Show constellation by default; timeline is built too so switching is instant
       renderConstellation(rankedEvents, brief);
       document.getElementById('view-toggle-row').style.display = 'flex';
-      document.getElementById('orbit-view-btn').classList.add('active');
-      document.getElementById('list-view-btn').classList.remove('active');
-      grid.style.display = 'none';
+      document.getElementById('timeline-container').style.display = 'block';  // so it can measure its width
+      renderTimeline(rankedEvents, window_);
+      setView('orbit');
 
       // Build list view cards (hidden by default)
       const listFragment = document.createDocumentFragment();
@@ -3432,25 +3552,15 @@ function init() {
     document.getElementById('cards-grid').innerHTML = '';
     document.getElementById('constellation-container').style.display = 'none';
     document.getElementById('constellation-detail').classList.remove('visible');
+    document.getElementById('timeline-container').style.display = 'none';
+    document.getElementById('timeline-detail').classList.remove('visible');
     document.getElementById('view-toggle-row').style.display = 'none';
   };
 
   // View toggle (orbit / list)
-  document.getElementById('orbit-view-btn').addEventListener('click', () => {
-    currentView = 'orbit';
-    document.getElementById('orbit-view-btn').classList.add('active');
-    document.getElementById('list-view-btn').classList.remove('active');
-    document.getElementById('constellation-container').style.display = 'block';
-    document.getElementById('cards-grid').style.display = 'none';
-  });
-  document.getElementById('list-view-btn').addEventListener('click', () => {
-    currentView = 'list';
-    document.getElementById('list-view-btn').classList.add('active');
-    document.getElementById('orbit-view-btn').classList.remove('active');
-    document.getElementById('constellation-container').style.display = 'none';
-    document.getElementById('constellation-detail').classList.remove('visible');
-    document.getElementById('cards-grid').style.display = '';
-  });
+  document.getElementById('orbit-view-btn').addEventListener('click', () => setView('orbit'));
+  document.getElementById('timeline-view-btn').addEventListener('click', () => setView('timeline'));
+  document.getElementById('list-view-btn').addEventListener('click', () => setView('list'));
 
   // Filter toggle
   document.getElementById('filter-toggle').onclick = function() {
