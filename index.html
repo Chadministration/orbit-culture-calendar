@@ -1791,7 +1791,29 @@ async function fetchTrending(brief, markets) {
       rel: `Hot right now on r/${p.sub}`,
       pri: i < 3 ? 'MEDIUM' : 'LOW', source: 'Reddit', url: p.url,
     }));
-    return [...google, ...bsky, ...reddit];
+    const yt = (d.youtube || []).slice(0, 30).map(v => ({
+      ...base,
+      id: `yt_${v.market}_${v.url}`.replace(/\W+/g, '_'),
+      name: `Trending on YouTube: ${trim(v.title)}`,
+      region: MARKETS.find(m => m.code === v.market)?.name || v.market,
+      mkts: [v.market],
+      rel: `${v.views.toLocaleString()} views · ${v.channel}`,
+      pri: v.views >= 1e6 ? 'HIGH' : v.views >= 2e5 ? 'MEDIUM' : 'LOW',
+      source: 'YouTube', url: v.url,
+    }));
+    // Seen in many hourly snapshots this week — sustained trends, not one-hour spikes
+    const rising = (d.rising || []).map(t => ({
+      ...base,
+      id: `rising_${t.source}_${t.market}_${t.title}`.replace(/\W+/g, '_'),
+      name: `Trending all week: ${trim(t.title)}`,
+      region: MARKETS.find(m => m.code === t.market)?.name || t.market,
+      mkts: [t.market],
+      rel: `Trending on ${t.source} for ${t.hours} hours since ${formatDate(t.first.slice(0, 10))}${t.detail ? ' · ' + t.detail : ''}`,
+      pri: t.hours >= 24 ? 'HIGH' : 'MEDIUM',
+      tags: [...base.tags, 'sustained trend', 'this week'],
+      source: t.source, url: t.url,
+    }));
+    return [...rising, ...google, ...yt, ...bsky, ...reddit];
   } catch (e) {
     console.warn('Trending fetch failed:', e);
     return [];
@@ -2132,7 +2154,7 @@ For "relevant_artists": list 8-12 musical artists or bands whose fanbase, genre,
 TIMING: Prefer moments inside the campaign window. Moments a few weeks either side are OK (they'll be flagged). Don't include moments months outside the window.
 MARKETS: If specific markets are selected, prefer moments in those markets. Only include a global or other-market moment if it's big enough that it would realistically be called out in a pitch to this client in the selected market.
 FIT: Rate every pick. "direct" = you can name a specific, concrete link to THIS brief's product, category, audience or campaign themes in one sentence (e.g. World Coffee Day for a brand launching iced coffees; a gaming expo for a Gen Z audience). "stretch" = the link is only generic reach, "people attend it", or "could be creatively linked". Be strict: fashion weeks, business planning, generic "season" moments and cruise/travel weeks are "stretch" for a fast-food drinks launch. Stretch picks outside the selected markets will be removed.
-TRENDING: Items tagged "trending" are what people are searching/posting about right now. Include one only if it's a direct fit and brand-safe (skip news about crime, deaths, politics, or individual private people).
+TRENDING: Items tagged "trending" are what people are searching/posting/watching right now; "Trending all week" items have lasted for days and are the strongest signals. Include one only if it's a direct fit and brand-safe (skip news about crime, deaths, politics, or individual private people).
 
 IMPORTANT: Only include results with tonal_risk "LOW" or "MEDIUM". Do NOT include any event with tonal_risk "HIGH" in your results array.
 
@@ -2837,7 +2859,7 @@ async function runSearch() {
     const candidateEvents = preFilterEvents();
 
     // Fetch live events in parallel
-    document.querySelector('.loading-text').textContent = 'Pulling live data: Google Trends, Bluesky, Reddit, holidays, anniversaries, TMDB & more…';
+    document.querySelector('.loading-text').textContent = 'Pulling live data: Google Trends, YouTube, Bluesky, Reddit, holidays, anniversaries & more…';
     const [tmEvents, tmdbEvents, wikiEvents, guardianEvents, redditEvents, calendarEvents, albumEvents] = await Promise.all([
       fetchTicketmasterEvents(selectedMarkets),
       fetchTMDBReleases(),

@@ -40,3 +40,6 @@
   from = "/api/trending"
   to = "/.netlify/functions/trending"
   status = 200
+
+[functions."trend-snapshot"]
+  schedule = "@hourly"

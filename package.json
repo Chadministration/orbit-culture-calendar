@@ -1,0 +1,8 @@
+{
+  "name": "orbit-culture-calendar",
+  "private": true,
+  "description": "Dependencies for Orbit's Netlify functions",
+  "dependencies": {
+    "@netlify/blobs": "8.2.0"
+  }
+}
