@@ -4,7 +4,7 @@
 // - request size and output tokens are capped
 const MODEL = 'gpt-4o';
 const MAX_BODY_BYTES = 400_000;   // full events list + live events + brief is ~150KB
-const MAX_OUTPUT_TOKENS = 4000;
+const MAX_OUTPUT_TOKENS = 7000;  // ~30 moments, each with a reason + activation idea
 
 const allowedOrigins = () =>
   [process.env.URL, process.env.DEPLOY_PRIME_URL, ...(process.env.ALLOWED_ORIGINS || '').split(',')]

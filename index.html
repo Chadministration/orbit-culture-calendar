@@ -258,6 +258,44 @@ nav {
 .month-chip.active { background: var(--dark-grey); border-color: var(--grey); color: var(--white); }
 
 /* Search button */
+/* ── ACTIVATION + SHORTLIST ─────────────── */
+.card-activation { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: rgba(30,215,96,.07); border: 1px solid rgba(30,215,96,.22); }
+.act-k { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--green); }
+.act-idea { font-size: 14px; font-weight: 600; color: #fff; margin-top: 3px; line-height: 1.35; }
+.act-fmts { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 7px; }
+.act-fmt { font-size: 10.5px; font-weight: 600; color: var(--grey); padding: 2px 7px; border-radius: 500px; border: 1px solid var(--border); }
+.card-actions { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
+.star-btn { background: transparent; border: 1px solid var(--border); color: var(--grey); border-radius: 500px; padding: 5px 12px; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s; }
+.star-btn:hover { color: #fff; border-color: var(--grey); }
+.star-btn.on { color: #F5C542; border-color: rgba(245,197,66,.5); background: rgba(245,197,66,.08); }
+.nav-actions { display: flex; gap: 8px; }
+.nav-shortlist-btn { color: #F5C542 !important; border-color: rgba(245,197,66,.4) !important; }
+.sl-scrim { position: fixed; inset: 0; background: rgba(0,0,0,.5); opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 90; }
+.sl-scrim.open { opacity: 1; pointer-events: auto; }
+.sl-drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(420px, 100vw); background: #111; border-left: 1px solid var(--border);
+  transform: translateX(100%); transition: transform .25s ease; z-index: 100; display: flex; flex-direction: column; }
+.sl-drawer.open { transform: none; }
+.sl-head { display: flex; justify-content: space-between; align-items: flex-start; padding: 22px 22px 14px; border-bottom: 1px solid var(--border); }
+.sl-title { font-size: 20px; font-weight: 800; letter-spacing: -.01em; }
+.sl-count { font-size: 12px; color: var(--grey); margin-top: 2px; }
+.sl-close { background: none; border: none; color: var(--grey); font-size: 26px; line-height: 1; cursor: pointer; }
+.sl-list { flex: 1; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.sl-empty { color: var(--grey); font-size: 13px; text-align: center; padding: 40px 20px; }
+.sl-item { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
+.sl-top { display: flex; gap: 10px; align-items: flex-start; }
+.sl-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 7px; flex-shrink: 0; }
+.sl-main { flex: 1; min-width: 0; }
+.sl-name { font-size: 14px; font-weight: 700; }
+.sl-meta { font-size: 12px; color: var(--grey); margin-top: 2px; }
+.sl-remove { background: none; border: none; color: var(--dark-grey); font-size: 18px; cursor: pointer; }
+.sl-remove:hover { color: #fff; }
+.sl-act { font-size: 12.5px; color: var(--green); margin: 8px 0 0 18px; }
+.sl-note { width: calc(100% - 18px); margin: 8px 0 0 18px; background: transparent; border: 1px dashed var(--border); border-radius: 8px; color: #ddd; font: inherit; font-size: 12.5px; padding: 6px 8px; resize: vertical; }
+.sl-note:focus { outline: none; border-color: var(--grey); border-style: solid; }
+.sl-foot { display: flex; gap: 8px; padding: 14px 16px; border-top: 1px solid var(--border); }
+.sl-btn { flex: 1; background: transparent; border: 1px solid var(--border); color: #fff; border-radius: 500px; padding: 11px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.sl-btn.primary { background: var(--green); color: #04130a; border-color: var(--green); }
+
 /* ── BRIEF SUMMARY (editable) ────────────── */
 .brief-summary { margin-top: 20px; padding-top: 22px; border-top: 1px solid var(--border); animation: fadeUp .35s ease both; }
 .brief-summary.hidden { display: none; }
@@ -913,7 +951,10 @@ footer {
     <span class="nav-brand-text">Orbit<span></span></span>
   </a>
   <span class="nav-tag">Spotify Creative Labs · 2026–27 Culture Calendar</span>
-  <button class="nav-browse-btn" id="nav-browse-btn">Browse all →</button>
+  <div class="nav-actions">
+    <button class="nav-browse-btn nav-shortlist-btn" id="nav-shortlist-btn">★ Shortlist · 0</button>
+    <button class="nav-browse-btn" id="nav-browse-btn">Browse all →</button>
+  </div>
 </nav>
 
 <!-- ── HERO ────────────────────────────────── -->
@@ -982,6 +1023,20 @@ footer {
   <div class="browse-filters" id="browse-filters"></div>
   <div id="browse-timeline"></div>
 </section>
+
+<!-- ── SHORTLIST DRAWER ───────────────────── -->
+<div class="sl-scrim" id="shortlist-scrim"></div>
+<aside class="sl-drawer" id="shortlist-drawer" aria-label="Shortlist">
+  <div class="sl-head">
+    <div><div class="sl-title">Shortlist</div><div class="sl-count" id="shortlist-count"></div></div>
+    <button class="sl-close" id="shortlist-close" title="Close">×</button>
+  </div>
+  <div class="sl-list" id="shortlist-list"></div>
+  <div class="sl-foot">
+    <button class="sl-btn primary" id="shortlist-copy">Copy all</button>
+    <button class="sl-btn" id="shortlist-clear">Clear</button>
+  </div>
+</aside>
 
 <!-- ── FOOTER ─────────────────────────────── -->
 <footer>
@@ -2123,7 +2178,7 @@ Return ONLY a JSON object in this exact format:
   "brand_category": "ONE of: health, charity, alcohol, non-alcoholic drinks, food & beverage, travel, fashion, tech, finance, automotive, entertainment, retail, other",
   "relevant_artists": ["Artist or Band Name", "Artist or Band Name", ...],
   "results": [
-    {"id": "event_id", "reason": "1-2 sentence explanation of why this event is relevant to this specific brief", "fit": "direct|stretch", "tonal_risk": "LOW|MEDIUM|HIGH"},
+    {"id": "event_id", "reason": "1-2 sentence explanation of why this event is relevant to this specific brief", "activation": {"idea": "short, specific Spotify activation headline", "formats": ["1-3 Spotify formats"]}, "fit": "direct|stretch", "tonal_risk": "LOW|MEDIUM|HIGH"},
     ...
   ],
   "generated": [
@@ -2135,6 +2190,7 @@ Return ONLY a JSON object in this exact format:
       "markets": ["AU","US","UK","GLOBAL", etc],
       "reason": "1-2 sentence explanation of why this is relevant to the brief",
       "confidence": "high|medium",
+      "activation": {"idea": "short, specific Spotify activation headline", "formats": ["1-3 Spotify formats"]},
       "fit": "direct|stretch",
       "scale": "major|minor — major = big enough that it would realistically be called out in a pitch in ANY market (e.g. Super Bowl, Halloween, Grammys); minor = niche or mostly local",
       "tonal_risk": "LOW|MEDIUM|HIGH"
@@ -2148,6 +2204,7 @@ For "relevant_artists": list 8-12 musical artists or bands whose fanbase, genre,
 TIMING: Prefer moments inside the campaign window. Moments a few weeks either side are OK (they'll be flagged). Don't include moments months outside the window.
 MARKETS: If specific markets are selected, prefer moments in those markets. Only include a global or other-market moment if it's big enough that it would realistically be called out in a pitch to this client in the selected market.
 FIT: Rate every pick. "direct" = you can name a specific, concrete link to THIS brief's product, category, audience or campaign themes in one sentence (e.g. World Coffee Day for a brand launching iced coffees; a gaming expo for a Gen Z audience). "stretch" = the link is only generic reach, "people attend it", or "could be creatively linked". Be strict: fashion weeks, business planning, generic "season" moments and cruise/travel weeks are "stretch" for a fast-food drinks launch. Stretch picks outside the selected markets will be removed.
+ACTIVATION: For every pick, suggest how THIS client could show up on Spotify at that moment — a concrete, pitchable idea in under 14 words (e.g. "Iced Coffee Chill: sponsored morning playlist for World Coffee Day week"), plus 1–3 formats from: Sponsored Playlist, Audio Ads, Video Ads, Homepage Takeover, Podcast Ads, Branded Playlist, Branded Podcast, Live Event / Experience, Social & Creator Content. If the brief lists programs the client has run before (e.g. The Stage, sponsored playlists), you may build on them by name. Make ideas specific to the product and the moment — never generic.
 TRENDING: Items tagged "trending" are what people are searching/posting/watching right now; "Trending all week" items have lasted for days and are the strongest signals. Include one only if it's a direct fit and brand-safe (skip news about crime, deaths, politics, or individual private people).
 
 IMPORTANT: Only include results with tonal_risk "LOW" or "MEDIUM". Do NOT include any event with tonal_risk "HIGH" in your results array.
@@ -2239,6 +2296,7 @@ ${JSON.stringify(eventsForAI, null, 0)}`;
     isGenerated: true,
     confidence: g.confidence || 'medium',
     fit: g.fit,
+    activation: g.activation,
     reason: g.reason,
     tonal_risk: g.tonal_risk || 'LOW'
   }));
@@ -2420,6 +2478,111 @@ function rankLabel(rank) {
   return String(rank).padStart(2, '0');
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// ACTIVATION IDEAS & SHORTLIST
+// ─────────────────────────────────────────────────────────────────────────────
+const escHtml = v => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+function activationHtml(e) {
+  const a = e.activation;
+  if (!a?.idea) return '';
+  const fmts = (a.formats || []).map(f => `<span class="act-fmt">${escHtml(f)}</span>`).join('');
+  return `<div class="card-activation"><div class="act-k">Spotify activation</div><div class="act-idea">${escHtml(a.idea)}</div>${fmts ? `<div class="act-fmts">${fmts}</div>` : ''}</div>`;
+}
+
+const SHORTLIST_KEY = 'orbit-shortlist-v1';
+const Shortlist = {
+  items: JSON.parse(localStorage.getItem(SHORTLIST_KEY) || '[]'),
+  save() { localStorage.setItem(SHORTLIST_KEY, JSON.stringify(this.items)); renderShortlistButton(); },
+  key: e => `${e.name}|${e.date}`,
+  has(e) { return this.items.some(i => i.key === this.key(e)); },
+  toggle(e, reason) {
+    const k = this.key(e);
+    if (this.has(e)) this.items = this.items.filter(i => i.key !== k);
+    else this.items.push({
+      key: k, name: e.name, date: e.date, end: e.end || null, cat: e.cat, region: e.region, mkts: e.mkts,
+      reason: reason || e.rel || '', activation: e.activation || null, source: e.source || 'Curated',
+      url: e.url || null, timing: e.timing || null, client: confirmedProfile?.client || null, note: '',
+      added: new Date().toISOString(),
+    });
+    this.save();
+    document.querySelectorAll(`.star-btn[data-key="${CSS.escape(k)}"]`).forEach(b => paintStar(b, this.has(e)));
+    if (document.getElementById('shortlist-drawer').classList.contains('open')) renderShortlistDrawer();
+  },
+};
+
+function paintStar(btn, on) {
+  btn.classList.toggle('on', on);
+  btn.textContent = on ? '★ Shortlisted' : '☆ Shortlist';
+  btn.title = on ? 'Remove from shortlist' : 'Add to shortlist';
+}
+
+function starButton(e, reason) {
+  const b = document.createElement('button');
+  b.className = 'star-btn';
+  b.dataset.key = Shortlist.key(e);
+  paintStar(b, Shortlist.has(e));
+  b.onclick = ev => { ev.stopPropagation(); Shortlist.toggle(e, reason); };
+  return b;
+}
+
+function momentText(i) {
+  const a = i.activation;
+  return [
+    `${i.name} — ${formatDate(i.date)}${i.end ? ' to ' + formatDate(i.end) : ''} · ${i.region}`,
+    i.reason && `Why: ${i.reason}`,
+    a?.idea && `Spotify activation: ${a.idea}${a.formats?.length ? ` (${a.formats.join(', ')})` : ''}`,
+    i.note && `Notes: ${i.note}`,
+  ].filter(Boolean).join('\n');
+}
+
+function renderShortlistButton() {
+  const b = document.getElementById('nav-shortlist-btn');
+  if (b) b.textContent = `★ Shortlist · ${Shortlist.items.length}`;
+}
+
+function renderShortlistDrawer() {
+  const list = document.getElementById('shortlist-list');
+  const items = [...Shortlist.items].sort((a, b) => a.date.localeCompare(b.date));
+  document.getElementById('shortlist-count').textContent = `${items.length} moment${items.length === 1 ? '' : 's'}`;
+  if (!items.length) {
+    list.innerHTML = `<div class="sl-empty">Star moments in your results to collect them here for the pitch.</div>`;
+    return;
+  }
+  list.innerHTML = '';
+  items.forEach(i => {
+    const row = document.createElement('div');
+    row.className = 'sl-item';
+    row.innerHTML = `
+      <div class="sl-top">
+        <span class="sl-dot" style="background:${catColor(i.cat)}"></span>
+        <div class="sl-main">
+          <div class="sl-name">${escHtml(i.name)}</div>
+          <div class="sl-meta">${formatDate(i.date)}${i.end ? ' – ' + formatDate(i.end) : ''} · ${escHtml(i.region)}${i.client ? ` · for ${escHtml(i.client)}` : ''}</div>
+        </div>
+        <button class="sl-remove" title="Remove">×</button>
+      </div>
+      ${i.activation?.idea ? `<div class="sl-act">→ ${escHtml(i.activation.idea)}</div>` : ''}
+      <textarea class="sl-note" rows="1" placeholder="Add a note…">${escHtml(i.note)}</textarea>`;
+    row.querySelector('.sl-remove').onclick = () => {
+      Shortlist.items = Shortlist.items.filter(x => x.key !== i.key); Shortlist.save(); renderShortlistDrawer();
+      document.querySelectorAll(`.star-btn[data-key="${CSS.escape(i.key)}"]`).forEach(b => paintStar(b, false));
+    };
+    row.querySelector('.sl-note').oninput = ev => {
+      const it = Shortlist.items.find(x => x.key === i.key); if (it) { it.note = ev.target.value; Shortlist.save(); }
+    };
+    list.appendChild(row);
+  });
+}
+
+function toggleShortlistDrawer(open) {
+  const d = document.getElementById('shortlist-drawer');
+  const willOpen = open ?? !d.classList.contains('open');
+  d.classList.toggle('open', willOpen);
+  document.getElementById('shortlist-scrim').classList.toggle('open', willOpen);
+  if (willOpen) renderShortlistDrawer();
+}
+
 function makeFeaturedCard(e, aiReason) {
   const color = catColor(e.cat);
   const marketHtml = e.mkts.includes('GLOBAL')
@@ -2453,14 +2616,16 @@ function makeFeaturedCard(e, aiReason) {
     </div>
     <div class="featured-right">
       <div class="featured-pull-quote">${aiReason || e.rel}</div>
-      <button class="copy-btn" style="position:static;opacity:1;margin-top:8px;align-self:flex-start" title="Copy to clipboard">Copy</button>
+      ${activationHtml(e)}
+      <div class="card-actions"><button class="copy-btn" style="position:static;opacity:1" title="Copy to clipboard">Copy</button></div>
     </div>
     <div class="featured-rank">01</div>
   `;
 
+  card.querySelector('.card-actions').prepend(starButton(e, aiReason));
   card.querySelector('.copy-btn').onclick = (ev) => {
     ev.stopPropagation();
-    const text = `${e.name}\n${formatDate(e.date)} · ${e.region}\nSpotify angle: ${e.rel}\nMarkets: ${e.mkts.join(', ')}`;
+    const text = momentText({ ...e, reason: aiReason || e.rel });
     navigator.clipboard.writeText(text).then(() => {
       const btn = ev.target;
       btn.textContent = 'Copied ✓';
@@ -2497,14 +2662,17 @@ function makeSemiCard(e, rank, aiReason) {
     </div>
     <div class="card-relevance">♪ ${e.rel}</div>
     ${aiReason ? `<div class="card-ai-reason">✦ ${aiReason}</div>` : ''}
+    ${activationHtml(e)}
     <div class="card-markets">${marketHtml}</div>
+    <div class="card-actions"></div>
     <button class="copy-btn" title="Copy to clipboard">Copy</button>
     <div class="card-rank">${rankLabel(rank)}</div>
   `;
 
+  card.querySelector('.card-actions').prepend(starButton(e, aiReason));
   card.querySelector('.copy-btn').onclick = (ev) => {
     ev.stopPropagation();
-    const text = `${e.name}\n${formatDate(e.date)} · ${e.region}\nSpotify angle: ${e.rel}\nMarkets: ${e.mkts.join(', ')}`;
+    const text = momentText({ ...e, reason: aiReason || e.rel });
     navigator.clipboard.writeText(text).then(() => {
       const btn = ev.target;
       btn.textContent = 'Copied ✓';
@@ -2549,15 +2717,18 @@ function makeCard(e, idx, aiReason) {
     </div>
     ${e.rel ? `<div class="card-relevance">♪ ${e.rel}</div>` : ''}
     ${aiReason ? `<div class="card-ai-reason">✦ ${aiReason}</div>` : ''}
+    ${activationHtml(e)}
     <div class="card-markets">${marketHtml}</div>
-    ${e.url ? `<a href="${e.url}" target="_blank" class="card-tm-link">View on Ticketmaster ↗</a>` : ''}
+    ${e.url ? `<a href="${e.url}" target="_blank" rel="noopener" class="card-tm-link">View on ${escHtml(e.source || 'source')} ↗</a>` : ''}
+    <div class="card-actions"></div>
     <button class="copy-btn" title="Copy to clipboard">Copy</button>
     <div class="card-rank">${rankLabel(rank)}</div>
   `;
 
+  card.querySelector('.card-actions').prepend(starButton(e, aiReason));
   card.querySelector('.copy-btn').onclick = (ev) => {
     ev.stopPropagation();
-    const text = `${e.name}\n${formatDate(e.date)} · ${e.region}\nSpotify angle: ${e.rel || aiReason || ''}\nMarkets: ${e.mkts.join(', ')}`;
+    const text = momentText({ ...e, reason: aiReason || e.rel });
     navigator.clipboard.writeText(text).then(() => {
       const btn = ev.target;
       btn.textContent = 'Copied ✓';
@@ -2798,8 +2969,11 @@ function renderConstellation(rankedEvents, brief) {
           <div class="detail-name">${event.name}</div>
           <div class="detail-meta">${formatDate(event.date)} · ${event.region} ${timingBadge(event)}</div>
           ${reason ? `<div class="detail-reason">✦ ${reason}</div>` : `<div class="detail-reason">♪ ${event.rel}</div>`}
+          ${activationHtml(event)}
           <div class="detail-markets">${marketHtml}</div>
+          <div class="card-actions"></div>
         `;
+        detail.querySelector('.card-actions').appendChild(starButton(event, reason));
         detail.classList.add('visible');
       });
 
@@ -3026,7 +3200,7 @@ async function runSearch() {
 
     const dbRanked = dbResults
       .filter(r => eventById[r.id])
-      .map(r => ({ event: eventById[r.id], reason: r.reason, fit: r.fit }))
+      .map(r => ({ event: { ...eventById[r.id], activation: r.activation }, reason: r.reason, fit: r.fit }))
       .filter(({ event }) => _tonalyFilter(event.name, event.cat));
 
     // Merge generated events and gig events (interleaved after top 3 DB results)
@@ -3219,6 +3393,25 @@ function init() {
 
   // Search button
   document.getElementById('search-btn').onclick = startBriefFlow;
+
+  // Shortlist
+  renderShortlistButton();
+  document.getElementById('nav-shortlist-btn').onclick = () => toggleShortlistDrawer();
+  document.getElementById('shortlist-close').onclick = () => toggleShortlistDrawer(false);
+  document.getElementById('shortlist-scrim').onclick = () => toggleShortlistDrawer(false);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') toggleShortlistDrawer(false); });
+  document.getElementById('shortlist-copy').onclick = ev => {
+    const items = [...Shortlist.items].sort((a, b) => a.date.localeCompare(b.date));
+    if (!items.length) return;
+    navigator.clipboard.writeText(items.map(momentText).join('\n\n')).then(() => {
+      ev.target.textContent = 'Copied ✓'; setTimeout(() => (ev.target.textContent = 'Copy all'), 2000);
+    });
+  };
+  document.getElementById('shortlist-clear').onclick = () => {
+    if (!Shortlist.items.length || !confirm('Remove everything from the shortlist?')) return;
+    Shortlist.items = []; Shortlist.save(); renderShortlistDrawer();
+    document.querySelectorAll('.star-btn').forEach(b => paintStar(b, false));
+  };
   document.getElementById('brief-input').addEventListener('input', () => {
     if (extractedFor !== null) resetBriefSummary();
   });
