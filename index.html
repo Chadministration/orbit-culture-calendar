@@ -581,6 +581,11 @@ nav {
   padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700;
   color: #FF4500; background: rgba(255,69,0,0.12); border: 1px solid rgba(255,69,0,0.3);
 }
+.card-timing-badge {
+  display: inline-flex; align-items: center; margin-left: 8px;
+  padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700;
+  color: #fbbf24; background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.35);
+}
 .card-gig-badge {
   display: inline-flex; align-items: center;
   padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700;
@@ -2110,6 +2115,7 @@ PART 2 — GENERATE additional moments: Think beyond the database. What other re
 Return ONLY a JSON object in this exact format:
 {
   "brand_profile": "1-2 sentence summary of the brand's tone, values, and what it should/should not attach to",
+  "campaign_window": {"start": "YYYY-MM-DD", "end": "YYYY-MM-DD"} — when the campaign runs, taken from the brief (e.g. "September - October" → first day of Sept to last day of Oct, in the next upcoming occurrence). Use null if the brief gives no timing,
   "brand_category": "ONE of: health, charity, alcohol, non-alcoholic drinks, food & beverage, travel, fashion, tech, finance, automotive, entertainment, retail, other",
   "relevant_artists": ["Artist or Band Name", "Artist or Band Name", ...],
   "results": [
@@ -2125,6 +2131,7 @@ Return ONLY a JSON object in this exact format:
       "markets": ["AU","US","UK","GLOBAL", etc],
       "reason": "1-2 sentence explanation of why this is relevant to the brief",
       "confidence": "high|medium",
+      "scale": "major|minor — major = big enough that it would realistically be called out in a pitch in ANY market (e.g. Super Bowl, Halloween, Grammys); minor = niche or mostly local",
       "tonal_risk": "LOW|MEDIUM|HIGH"
     },
     ...
@@ -2132,6 +2139,9 @@ Return ONLY a JSON object in this exact format:
 }
 
 For "relevant_artists": list 8-12 musical artists or bands whose fanbase, genre, or cultural moment aligns with this brand's target audience and tone. Think about who this brand's customer is listening to RIGHT NOW. These will be used to fetch live upcoming tour dates and gig data — so pick artists who are likely to be actively touring. Include a mix of: 2-3 A-list names (massive reach), 3-4 mid-tier culturally relevant artists (strong scene fit), 2-3 emerging/niche artists (authentic credibility). Consider the markets selected.
+
+TIMING: Prefer moments inside the campaign window. Moments a few weeks either side are OK (they'll be flagged). Don't include moments months outside the window.
+MARKETS: If specific markets are selected, prefer moments in those markets. Only include a global or other-market moment if it's big enough that it would realistically be called out in a pitch to this client in the selected market.
 
 IMPORTANT: Only include results with tonal_risk "LOW" or "MEDIUM". Do NOT include any event with tonal_risk "HIGH" in your results array.
 
@@ -2215,7 +2225,7 @@ ${JSON.stringify(eventsForAI, null, 0)}`;
     region: g.region || 'Global',
     mkts: g.markets || ['GLOBAL'],
     rel: '',
-    pri: 'MEDIUM',
+    pri: g.scale === 'major' ? 'HIGH' : 'MEDIUM',
     tags: [],
     isGenerated: true,
     confidence: g.confidence || 'medium',
@@ -2223,7 +2233,52 @@ ${JSON.stringify(eventsForAI, null, 0)}`;
     tonal_risk: g.tonal_risk || 'LOW'
   }));
 
-  return { dbResults: safeResults, generatedEvents: generatedResults, relevantArtists: parsed.relevant_artists || [] };
+  return { dbResults: safeResults, generatedEvents: generatedResults, relevantArtists: parsed.relevant_artists || [], campaignWindow: parsed.campaign_window };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CAMPAIGN WINDOW & MARKET FIT
+// ─────────────────────────────────────────────────────────────────────────────
+const WINDOW_BUFFER_DAYS = 21;  // moments this close outside the window are kept but flagged
+const DAY_MS = 864e5;
+
+// AI-extracted window from the brief; defaults to the next 3 months. Never starts before today.
+function resolveCampaignWindow(w) {
+  const iso = /^\d{4}-\d{2}-\d{2}$/;
+  let start = w && iso.test(w.start) ? w.start : TODAY_ISO;
+  let end = w && iso.test(w.end) ? w.end : null;
+  if (start < TODAY_ISO) start = TODAY_ISO;
+  if (!end || end < start) {
+    const d = new Date(start); d.setMonth(d.getMonth() + 3);
+    end = d.toISOString().slice(0, 10);
+  }
+  return { start, end, fromBrief: !!(w && iso.test(w.end || '')) };
+}
+
+// Keeps events overlapping the window; within the buffer they're kept with e.timing set; else dropped
+function tagTiming(e, w) {
+  const s = e.date.length === 7 ? e.date + '-01' : e.date;
+  const f = e.end || s;
+  delete e.timing;
+  if (f >= w.start && s <= w.end) return true;
+  const gap = s > w.end ? (new Date(s) - new Date(w.end)) / DAY_MS : (new Date(w.start) - new Date(f)) / DAY_MS;
+  if (gap > WINDOW_BUFFER_DAYS) return false;
+  e.timing = { side: s > w.end ? 'after' : 'before', days: Math.round(gap) };
+  return true;
+}
+
+// With markets selected: keep events in those markets; global ones only if they're big (HIGH priority)
+function fitsMarkets(e, markets) {
+  if (!markets.length) return true;
+  const mkts = e.mkts || [];
+  if (mkts.some(m => markets.includes(m))) return true;
+  return mkts.includes('GLOBAL') && e.pri === 'HIGH';
+}
+
+function timingBadge(e) {
+  if (!e.timing) return '';
+  const wk = Math.max(1, Math.round(e.timing.days / 7));
+  return `<span class="card-timing-badge" title="Outside the campaign window, but close enough to consider">⏱ ${wk} wk ${e.timing.side} window</span>`;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -2357,7 +2412,7 @@ function makeFeaturedCard(e, aiReason) {
         <div class="featured-name">${e.name}</div>
       </div>
       <div class="featured-meta">
-        <span class="featured-date">${formatDate(e.date)}</span>
+        <span class="featured-date">${formatDate(e.date)}</span>${timingBadge(e)}
         <span class="featured-region">${e.region}</span>
       </div>
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
@@ -2406,7 +2461,7 @@ function makeSemiCard(e, rank, aiReason) {
     </div>
     <div class="card-name">${e.name}</div>
     <div class="card-meta">
-      <span class="card-date">${formatDate(e.date)}</span>
+      <span class="card-date">${formatDate(e.date)}</span>${timingBadge(e)}
       <span class="card-region">${e.region}</span>
     </div>
     <div class="card-relevance">♪ ${e.rel}</div>
@@ -2458,7 +2513,7 @@ function makeCard(e, idx, aiReason) {
     ${e.isGenerated ? `<div><span class="card-generated-badge">✦ AI-sourced${e.confidence === 'medium' ? ' · verify date' : ''}</span></div>` : ''}
     <div class="card-name">${e.name}</div>
     <div class="card-meta">
-      <span class="card-date">${formatDate(e.date)}</span>
+      <span class="card-date">${formatDate(e.date)}</span>${timingBadge(e)}
       <span class="card-region">${e.region}</span>
     </div>
     ${e.rel ? `<div class="card-relevance">♪ ${e.rel}</div>` : ''}
@@ -2710,7 +2765,7 @@ function renderConstellation(rankedEvents, brief) {
             <span class="cat-badge" style="--cat-c:${color}">${catLabel(event.cat)}</span>
           </div>
           <div class="detail-name">${event.name}</div>
-          <div class="detail-meta">${formatDate(event.date)} · ${event.region}</div>
+          <div class="detail-meta">${formatDate(event.date)} · ${event.region} ${timingBadge(event)}</div>
           ${reason ? `<div class="detail-reason">✦ ${reason}</div>` : `<div class="detail-reason">♪ ${event.rel}</div>`}
           <div class="detail-markets">${marketHtml}</div>
         `;
@@ -2795,7 +2850,7 @@ async function runSearch() {
     const allCandidates = [...candidateEvents, ...liveEvents];
 
     document.querySelector('.loading-text').textContent = 'AI is ranking your moments…';
-    const { dbResults, generatedEvents, relevantArtists } = await rankEventsWithAI(brief, allCandidates);
+    const { dbResults, generatedEvents, relevantArtists, campaignWindow } = await rankEventsWithAI(brief, allCandidates);
 
     // Fetch live gig data from Bandsintown using AI-suggested artists
     let gigEvents = [];
@@ -2816,12 +2871,14 @@ async function runSearch() {
     // Merge generated events and gig events (interleaved after top 3 DB results)
     const generatedRanked = generatedEvents.map(e => ({ event: e, reason: e.reason }));
     const gigRanked = gigEvents.map(e => ({ event: e, reason: `Live ${e.artistName} show in ${e.region} — a direct audience activation opportunity.` }));
+    const window_ = resolveCampaignWindow(campaignWindow);
+    const fits = ({ event }) => fitsMarkets(event, selectedMarkets) && tagTiming(event, window_);
     const rankedEvents = [
       ...dbRanked.slice(0, 3),
       ...generatedRanked,
       ...gigRanked,
       ...dbRanked.slice(3)
-    ];
+    ].filter(fits);
 
     grid.innerHTML = '';
 
@@ -2842,7 +2899,7 @@ async function runSearch() {
         ? MARKETS.filter(m => selectedMarkets.includes(m.code)).map(m => m.flag+' '+m.name).join(', ')
         : 'all markets';
       title.innerHTML = `<span class="count">${rankedEvents.length}</span> moment${rankedEvents.length !== 1 ? 's' : ''} found`;
-      meta.innerHTML = `AI-matched to: "${brief.substring(0,80)}${brief.length>80?'…':''}" · ${mktLabel}${generatedRanked.length > 0 ? ` · <span style="color:var(--green)">+${generatedRanked.length} AI-sourced</span>` : ''}`;
+      meta.innerHTML = `AI-matched to: "${brief.substring(0,80)}${brief.length>80?'…':''}" · ${mktLabel} · ${window_.fromBrief ? 'Campaign' : 'Next 3 months'}: ${formatDate(window_.start)} – ${formatDate(window_.end)} (±3 wk buffer)${generatedRanked.length > 0 ? ` · <span style="color:var(--green)">+${generatedRanked.length} AI-sourced</span>` : ''}`;
 
       // Show constellation by default
       currentView = 'orbit';
