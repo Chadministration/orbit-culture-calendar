@@ -258,6 +258,41 @@ nav {
 .month-chip.active { background: var(--dark-grey); border-color: var(--grey); color: var(--white); }
 
 /* Search button */
+/* ── BRIEF SUMMARY (editable) ────────────── */
+.brief-summary { margin-top: 20px; padding-top: 22px; border-top: 1px solid var(--border); animation: fadeUp .35s ease both; }
+.brief-summary.hidden { display: none; }
+.bs-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+.bs-title { font-size: 15px; font-weight: 700; }
+.bs-sub { font-size: 12px; color: var(--grey); margin-bottom: 16px; }
+.bs-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 14px; }
+.bs-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.bs-field.wide { grid-column: 1 / -1; }
+.bs-field label { font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--grey); }
+.bs-field input, .bs-field select {
+  background: var(--card); border: 1px solid var(--border); border-radius: 10px; color: #fff;
+  font: inherit; font-size: 14px; padding: 10px 12px; min-width: 0; width: 100%;
+}
+.bs-field input:focus, .bs-field select:focus { outline: none; border-color: var(--green); }
+.bs-field input::placeholder { color: var(--dark-grey); }
+.bs-dates { display: flex; align-items: center; gap: 8px; }
+.bs-dates span { color: var(--grey); font-size: 12px; }
+.bs-dates input { color-scheme: dark; }
+.bs-markets { font-size: 13px; color: #fff; padding: 10px 0 0; }
+.bs-markets em { color: var(--grey); font-style: normal; font-size: 12px; }
+.bs-actions { display: flex; gap: 10px; margin-top: 18px; }
+.bs-actions .search-btn { margin-top: 0; flex: 1; }
+.bs-secondary { background: transparent; border: 1px solid var(--border); color: var(--grey); border-radius: 500px; padding: 0 20px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.bs-secondary:hover { color: #fff; border-color: var(--grey); }
+@media (max-width: 640px) { .bs-grid { grid-template-columns: 1fr; } }
+
+/* ── RESULTS META CHIPS ─────────────────── */
+.meta-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; align-items: center; }
+.meta-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 500px; background: var(--card); border: 1px solid var(--border); font-size: 12px; color: #fff; white-space: nowrap; }
+.meta-chip .k { color: var(--grey); }
+.meta-chip.ai { color: var(--green); border-color: rgba(30,215,96,.35); }
+.meta-edit { background: none; border: none; color: var(--green); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; padding: 4px 6px; }
+.meta-edit:hover { text-decoration: underline; }
+
 .search-btn {
   width: 100%;
   background: var(--green);
@@ -911,6 +946,7 @@ footer {
     </div>
 
     <button class="search-btn" id="search-btn">Find Moments</button>
+    <div class="brief-summary hidden" id="brief-summary"></div>
   </div>
 </section>
 </div>
@@ -2007,7 +2043,7 @@ function mapTMCategory(segment) {
   return map[segment] || 'Pop Culture';
 }
 
-async function rankEventsWithAI(brief, events) {
+async function rankEventsWithAI(brief, events, profile = null) {
   const eventsForAI = events.map(e => ({
     id: e.id,
     name: e.name,
@@ -2136,7 +2172,9 @@ ${JSON.stringify(eventsForAI, null, 0)}`;
       response_format: { type: 'json_object' },
       messages: [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Creative brief: ${brief}` }
+        { role: 'user', content: `Creative brief: ${brief}` + (profile
+          ? `\n\nCONFIRMED BRIEF DETAILS (checked by the user — these override anything in the brief text above):\n${JSON.stringify(profile, null, 1)}`
+          : '') }
       ]
     })
   });
@@ -2153,7 +2191,7 @@ ${JSON.stringify(eventsForAI, null, 0)}`;
   // Build brand context from the AI's own brand_profile to determine sensitivity
   // Use the AI's single-word category, not the free-text profile — a profile saying
   // "not a health brand" would otherwise match /health/ and unlock health moments.
-  const brandCategory = (parsed.brand_category || '').toLowerCase();
+  const brandCategory = (profile?.category || parsed.brand_category || '').toLowerCase();
   const isHealthBrand     = /^(health|charity)/.test(brandCategory);
   const isAlcoholBrand    = /^alcohol/.test(brandCategory);
   const isSoberBrand      = /^non-alcoholic/.test(brandCategory);
@@ -2205,7 +2243,9 @@ ${JSON.stringify(eventsForAI, null, 0)}`;
     tonal_risk: g.tonal_risk || 'LOW'
   }));
 
-  return { dbResults: safeResults, generatedEvents: generatedResults, relevantArtists: parsed.relevant_artists || [], campaignWindow: parsed.campaign_window };
+  return { dbResults: safeResults, generatedEvents: generatedResults, relevantArtists: parsed.relevant_artists || [], campaignWindow: profile?.campaign_end
+    ? { start: profile.campaign_start || TODAY_ISO, end: profile.campaign_end }
+    : parsed.campaign_window };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -2292,6 +2332,11 @@ function renderMarketChips() {
     };
     row.appendChild(btn);
   });
+  // Keep the brief summary card's market line in sync
+  const bsm = document.querySelector('#brief-summary .bs-markets');
+  if (bsm) bsm.innerHTML = (selectedMarkets.length
+    ? MARKETS.filter(m => selectedMarkets.includes(m.code)).map(m => `${m.flag} ${m.name}`).join(' · ')
+    : '🌍 Global') + ' <em>— change with the market buttons above</em>';
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -2608,7 +2653,7 @@ function renderConstellation(rankedEvents, brief) {
   const ring2 = rankedEvents.slice(3, 8);
   const ring3 = rankedEvents.slice(8);
 
-  const clientName = extractClientName(brief);
+  const clientName = confirmedProfile?.client || extractClientName(brief);
 
   // Defs for filters
   const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
@@ -2772,9 +2817,140 @@ function renderConstellation(rankedEvents, brief) {
 // ─────────────────────────────────────────────────────────────────────────────
 // SEARCH
 // ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// BRIEF SUMMARY — AI reads the brief first; the user checks/edits before the search runs
+// ─────────────────────────────────────────────────────────────────────────────
+const CATEGORY_OPTIONS = ['food & beverage', 'non-alcoholic drinks', 'alcohol', 'health', 'charity', 'travel',
+  'fashion', 'beauty', 'tech', 'gaming', 'finance', 'automotive', 'entertainment', 'retail', 'other'];
+let confirmedProfile = null;   // what the search uses, once the user has checked it
+let extractedFor = null;       // brief text the summary card was built from
+
+async function callOpenAI(system, user) {
+  const url = IS_NETLIFY ? '/api/openai' : 'https://api.openai.com/v1/chat/completions';
+  const headers = IS_NETLIFY
+    ? { 'Content-Type': 'application/json' }
+    : { 'Content-Type': 'application/json', 'Authorization': `Bearer ${OPENAI_API_KEY}` };
+  const resp = await fetch(url, {
+    method: 'POST', headers,
+    body: JSON.stringify({ model: 'gpt-4o', temperature: 0.2, response_format: { type: 'json_object' },
+      messages: [{ role: 'system', content: system }, { role: 'user', content: user }] }),
+  });
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    throw new Error(err.error?.message || `API error ${resp.status}`);
+  }
+  return JSON.parse((await resp.json()).choices[0].message.content);
+}
+
+async function extractBrief(brief) {
+  const codes = MARKETS.map(m => `${m.code} (${m.name})`).join(', ');
+  const p = await callOpenAI(`You read creative briefs for Spotify Creative Labs and pull out the key facts. Today's date is ${TODAY_ISO}.
+Return ONLY JSON:
+{
+  "client": "brand/client name",
+  "product": "the product, launch or focus of the campaign (short)",
+  "category": "ONE of: ${CATEGORY_OPTIONS.join(', ')}",
+  "audience": "target audience (short, e.g. 'Gen Z, 16–24')",
+  "markets": ["market codes from: ${codes}"],
+  "campaign_start": "YYYY-MM-DD",
+  "campaign_end": "YYYY-MM-DD",
+  "themes": ["3–6 short themes/hooks from the brief"],
+  "goal": "campaign goal / KPI (short)"
+}
+Rules: use the next upcoming occurrence for month ranges ("September - October" → first of Sept to last of Oct). Infer markets from currency, cities or country names (AUD → AU). Use null for anything the brief doesn't say — don't guess.`, brief);
+  if (!CATEGORY_OPTIONS.includes(p.category)) p.category = 'other';
+  p.markets = (p.markets || []).filter(c => MARKETS.some(m => m.code === c));
+  p.themes = Array.isArray(p.themes) ? p.themes : [];
+  return p;
+}
+
+function renderBriefSummary(p) {
+  const el = document.getElementById('brief-summary');
+  const esc = v => String(v ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  // Pre-select the markets the brief mentions, unless the user already picked some
+  if (!selectedMarkets.length && p.markets.length) { selectedMarkets = [...p.markets]; renderMarketChips(); }
+  const mkts = selectedMarkets.length
+    ? MARKETS.filter(m => selectedMarkets.includes(m.code)).map(m => `${m.flag} ${m.name}`).join(' · ')
+    : '🌍 Global';
+  el.innerHTML = `
+    <div class="bs-head"><div class="bs-title">Here's what we understood</div></div>
+    <div class="bs-sub">Check and tweak anything — this is what the search will use.</div>
+    <div class="bs-grid">
+      <div class="bs-field"><label for="bs-client">Client</label><input id="bs-client" value="${esc(p.client)}" placeholder="e.g. KFC"></div>
+      <div class="bs-field"><label for="bs-product">Product / focus</label><input id="bs-product" value="${esc(p.product)}" placeholder="e.g. Kwench drinks launch"></div>
+      <div class="bs-field"><label for="bs-category">Category</label>
+        <select id="bs-category">${CATEGORY_OPTIONS.map(c => `<option value="${c}"${c === p.category ? ' selected' : ''}>${c[0].toUpperCase() + c.slice(1)}</option>`).join('')}</select></div>
+      <div class="bs-field"><label for="bs-audience">Audience</label><input id="bs-audience" value="${esc(p.audience)}" placeholder="e.g. Gen Z"></div>
+      <div class="bs-field"><label>Campaign dates</label>
+        <div class="bs-dates"><input type="date" id="bs-start" value="${esc(p.campaign_start)}"><span>to</span><input type="date" id="bs-end" value="${esc(p.campaign_end)}"></div></div>
+      <div class="bs-field"><label for="bs-goal">Goal / KPI</label><input id="bs-goal" value="${esc(p.goal)}" placeholder="e.g. Awareness, brand lift"></div>
+      <div class="bs-field wide"><label for="bs-themes">Themes & hooks</label><input id="bs-themes" value="${esc(p.themes.join(', '))}" placeholder="comma-separated"></div>
+      <div class="bs-field wide"><label>Markets</label><div class="bs-markets">${mkts} <em>— change with the market buttons above</em></div></div>
+    </div>
+    <div class="bs-actions">
+      <button class="search-btn" id="bs-go">Looks right — find moments</button>
+      <button class="bs-secondary" id="bs-reread">Re-read brief</button>
+    </div>`;
+  el.classList.remove('hidden');
+  document.getElementById('search-btn').style.display = 'none';
+  document.getElementById('bs-go').onclick = () => { confirmedProfile = readBriefSummary(); runSearch(); };
+  document.getElementById('bs-reread').onclick = startBriefFlow;
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function readBriefSummary() {
+  const v = id => document.getElementById(id).value.trim() || null;
+  return {
+    client: v('bs-client'), product: v('bs-product'), category: v('bs-category'), audience: v('bs-audience'),
+    campaign_start: v('bs-start'), campaign_end: v('bs-end'), goal: v('bs-goal'),
+    themes: (v('bs-themes') || '').split(',').map(t => t.trim()).filter(Boolean),
+    markets: [...selectedMarkets],
+  };
+}
+
+function resetBriefSummary() {
+  confirmedProfile = null; extractedFor = null;
+  const el = document.getElementById('brief-summary');
+  el.classList.add('hidden'); el.innerHTML = '';
+  const btn = document.getElementById('search-btn');
+  btn.style.display = ''; btn.disabled = false; btn.textContent = 'Find Moments';
+}
+
+// Step 1 of a search: read the brief and show the summary card
+async function startBriefFlow() {
+  const brief = document.getElementById('brief-input').value.trim();
+  if (!brief) return runSearch();  // no brief → plain filtered list
+  const btn = document.getElementById('search-btn');
+  btn.style.display = ''; btn.disabled = true; btn.textContent = 'Reading your brief…';
+  document.getElementById('brief-summary').classList.add('hidden');
+  try {
+    const p = await extractBrief(brief);
+    extractedFor = brief;
+    renderBriefSummary(p);
+  } catch (e) {
+    btn.disabled = false; btn.textContent = 'Find Moments';
+    alert(`Couldn't read the brief: ${e.message}`);
+  }
+}
+
+function briefMetaChips(profile, mktLabel, window_, aiCount) {
+  const chip = (k, v, cls = '') => v ? `<span class="meta-chip ${cls}">${k ? `<span class="k">${k}</span>` : ''}${v}</span>` : '';
+  const esc = v => String(v ?? '').replace(/</g, '&lt;');
+  return `<div class="meta-chips">
+    ${chip('', esc([profile?.client, profile?.product].filter(Boolean).join(' · ')))}
+    ${chip('Audience', esc(profile?.audience))}
+    ${chip('', mktLabel)}
+    ${chip(window_.fromBrief ? 'Campaign' : 'Next 3 months', `${formatDate(window_.start)} – ${formatDate(window_.end)} <span class="k">±3 wk</span>`)}
+    ${aiCount ? chip('', `+${aiCount} AI-sourced`, 'ai') : ''}
+    ${profile ? '<button class="meta-edit" id="meta-edit">Edit brief ↑</button>' : ''}
+  </div>`;
+}
+
 async function runSearch() {
   const brief   = document.getElementById('brief-input').value.trim();
-  const btn     = document.getElementById('search-btn');
+  // The summary card's button drives the search once the brief has been checked
+  const btn     = document.getElementById('bs-go') || document.getElementById('search-btn');
+  const btnLabel = btn.textContent;
   const section  = document.getElementById('results-section');
   const grid     = document.getElementById('cards-grid');
   const title    = document.getElementById('results-title');
@@ -2835,7 +3011,7 @@ async function runSearch() {
     const allCandidates = [...candidateEvents, ...liveEvents];
 
     document.querySelector('.loading-text').textContent = 'AI is ranking your moments…';
-    const { dbResults, generatedEvents, relevantArtists, campaignWindow } = await rankEventsWithAI(brief, allCandidates);
+    const { dbResults, generatedEvents, relevantArtists, campaignWindow } = await rankEventsWithAI(brief, allCandidates, confirmedProfile);
 
     // Fetch live gig data from Bandsintown using AI-suggested artists
     let gigEvents = [];
@@ -2884,7 +3060,9 @@ async function runSearch() {
         ? MARKETS.filter(m => selectedMarkets.includes(m.code)).map(m => m.flag+' '+m.name).join(', ')
         : 'all markets';
       title.innerHTML = `<span class="count">${rankedEvents.length}</span> moment${rankedEvents.length !== 1 ? 's' : ''} found`;
-      meta.innerHTML = `AI-matched to: "${brief.substring(0,80)}${brief.length>80?'…':''}" · ${mktLabel} · ${window_.fromBrief ? 'Campaign' : 'Next 3 months'}: ${formatDate(window_.start)} – ${formatDate(window_.end)} (±3 wk buffer)${generatedRanked.length > 0 ? ` · <span style="color:var(--green)">+${generatedRanked.length} AI-sourced</span>` : ''}`;
+      meta.innerHTML = briefMetaChips(confirmedProfile, mktLabel, window_, generatedRanked.length);
+      document.getElementById('meta-edit')?.addEventListener('click', () =>
+        document.getElementById('brief-summary').scrollIntoView({ behavior: 'smooth', block: 'center' }));
 
       // Show constellation by default
       currentView = 'orbit';
@@ -2929,7 +3107,7 @@ async function runSearch() {
       </div>`;
   } finally {
     btn.disabled = false;
-    btn.textContent = 'Find Moments';
+    btn.textContent = btnLabel;
   }
 
   section.scrollIntoView({behavior:'smooth', block:'start'});
@@ -3040,16 +3218,20 @@ function init() {
   document.getElementById('footer-count').textContent = `${total} cultural moments · 12 markets`;
 
   // Search button
-  document.getElementById('search-btn').onclick = runSearch;
+  document.getElementById('search-btn').onclick = startBriefFlow;
+  document.getElementById('brief-input').addEventListener('input', () => {
+    if (extractedFor !== null) resetBriefSummary();
+  });
 
   // Enter key in textarea
   document.getElementById('brief-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) runSearch();
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) startBriefFlow();
   });
 
   // Clear
   document.getElementById('clear-btn').onclick = () => {
     document.getElementById('brief-input').value = '';
+    resetBriefSummary();
     selectedCats = []; selectedQuarters = [];
     renderCatFilter(); renderQuarterFilter();
     document.getElementById('results-section').classList.add('hidden');
