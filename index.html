@@ -318,6 +318,10 @@ nav {
 .sl-foot { display: flex; gap: 8px; padding: 14px 16px; border-top: 1px solid var(--border); }
 .sl-btn { flex: 1; background: transparent; border: 1px solid var(--border); color: #fff; border-radius: 500px; padding: 11px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
 .sl-btn.primary { background: var(--green); color: #04130a; border-color: var(--green); }
+.sl-btn:disabled { opacity: .6; cursor: wait; }
+.sl-foot-2 { border-top: none; padding-top: 0; justify-content: space-between; }
+.sl-link { background: none; border: none; color: var(--grey); font: inherit; font-size: 12px; cursor: pointer; padding: 2px 4px; }
+.sl-link:hover { color: #fff; text-decoration: underline; }
 
 /* ── BRIEF SUMMARY (editable) ────────────── */
 .brief-summary { margin-top: 20px; padding-top: 22px; border-top: 1px solid var(--border); animation: fadeUp .35s ease both; }
@@ -1059,8 +1063,12 @@ footer {
   </div>
   <div class="sl-list" id="shortlist-list"></div>
   <div class="sl-foot">
-    <button class="sl-btn primary" id="shortlist-copy">Copy all</button>
-    <button class="sl-btn" id="shortlist-clear">Clear</button>
+    <button class="sl-btn primary" id="shortlist-deck" title="PowerPoint file — opens in Google Slides (File → Import slides)">Download deck</button>
+    <button class="sl-btn" id="shortlist-csv" title="Spreadsheet for the media plan">Spreadsheet</button>
+  </div>
+  <div class="sl-foot sl-foot-2">
+    <button class="sl-link" id="shortlist-copy">Copy as text</button>
+    <button class="sl-link" id="shortlist-clear">Clear shortlist</button>
   </div>
 </aside>
 
@@ -2601,6 +2609,109 @@ function renderShortlistDrawer() {
   });
 }
 
+// ── Export: PowerPoint deck (opens in Google Slides) and CSV for the media plan
+const sortedShortlist = () => [...Shortlist.items].sort((a, b) => a.date.localeCompare(b.date));
+const fmtRange = i => formatDate(i.date) + (i.end && i.end !== i.date ? ' – ' + formatDate(i.end) : '');
+
+function exportCSV() {
+  const items = sortedShortlist();
+  if (!items.length) return;
+  const cols = ['Date', 'End date', 'Moment', 'Category', 'Region', 'Markets', 'Why it fits', 'Spotify activation', 'Formats', 'Timing', 'Source', 'Notes'];
+  const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const rows = items.map(i => [i.date, i.end || '', i.name, catLabel(i.cat), i.region, (i.mkts || []).join(' '), i.reason,
+    i.activation?.idea || '', (i.activation?.formats || []).join(', '),
+    i.timing ? `${Math.max(1, Math.round(i.timing.days / 7))} wk ${i.timing.side} window` : 'In window', i.source, i.note]);
+  const csv = '\ufeff' + [cols, ...rows].map(r => r.map(q).join(',')).join('\r\n');
+  download(new Blob([csv], { type: 'text/csv;charset=utf-8' }), `${fileStem()}-moments.csv`);
+}
+
+function fileStem() {
+  const c = confirmedProfile?.client || sortedShortlist()[0]?.client || 'orbit';
+  return c.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'orbit';
+}
+
+function download(blob, name) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+let pptxLoading;
+function loadPptx() {
+  pptxLoading ||= new Promise((resolve, reject) => {
+    const sc = document.createElement('script');
+    sc.src = 'https://cdn.jsdelivr.net/npm/pptxgenjs@4.0.1/dist/pptxgen.bundle.js';
+    sc.integrity = 'sha256-T7nqxc/vshPi2HQ8K3FRAl8xv7P4NMc8EgYpFtqg8/g=';
+    sc.crossOrigin = 'anonymous';
+    sc.onload = () => resolve(window.PptxGenJS);
+    sc.onerror = () => { pptxLoading = null; reject(new Error('Could not load the deck builder')); };
+    document.head.appendChild(sc);
+  });
+  return pptxLoading;
+}
+
+async function exportDeck(btn) {
+  const items = sortedShortlist();
+  if (!items.length) return;
+  btn.disabled = true; btn.textContent = 'Building deck…';
+  try {
+    const PptxGenJS = await loadPptx();
+    const pptx = new PptxGenJS();
+    pptx.layout = 'LAYOUT_WIDE';  // 13.33 × 7.5 in
+    const BG = '0A0A0A', GREEN = '1ED760', WHITE = 'FFFFFF', GREY = 'A7A7A7', FONT = 'Arial';
+    const hex = c => (c || '#888888').replace('#', '').toUpperCase();
+    const p = confirmedProfile || {};
+    const client = p.client || items[0].client || 'Client';
+    const windowTxt = p.campaign_start && p.campaign_end ? `${formatDate(p.campaign_start)} – ${formatDate(p.campaign_end)}` : '';
+
+    // Title
+    let sl = pptx.addSlide(); sl.background = { color: BG };
+    sl.addShape(pptx.ShapeType.ellipse, { x: 9.3, y: -1.6, w: 5.5, h: 5.5, fill: { color: GREEN, transparency: 85 }, line: { color: GREEN, transparency: 60, width: 1 } });
+    sl.addText('CULTURAL MOMENTS', { x: 0.7, y: 2.2, w: 9, h: 0.4, fontFace: FONT, fontSize: 14, bold: true, color: GREEN, charSpacing: 4 });
+    sl.addText(`${client}${p.product ? ' · ' + p.product : ''}`, { x: 0.7, y: 2.65, w: 11.5, h: 1.2, fontFace: FONT, fontSize: 44, bold: true, color: WHITE });
+    sl.addText([p.audience, windowTxt, (p.markets || []).map(c => MARKETS.find(m => m.code === c)?.name || c).join(' · ')].filter(Boolean).join('   |   '), { x: 0.7, y: 3.9, w: 11.5, h: 0.5, fontFace: FONT, fontSize: 16, color: GREY });
+    sl.addText(`Spotify Creative Labs · Orbit · ${formatDate(TODAY_ISO)}`, { x: 0.7, y: 6.6, w: 8, h: 0.4, fontFace: FONT, fontSize: 11, color: GREY });
+
+    // Overview
+    sl = pptx.addSlide(); sl.background = { color: BG };
+    sl.addText(`${items.length} moments to own`, { x: 0.7, y: 0.45, w: 12, h: 0.8, fontFace: FONT, fontSize: 30, bold: true, color: WHITE });
+    const rowH = Math.min(0.5, 5.6 / items.length);
+    items.forEach((i, n) => {
+      const y = 1.45 + n * rowH;
+      sl.addShape(pptx.ShapeType.ellipse, { x: 0.75, y: y + rowH / 2 - 0.07, w: 0.14, h: 0.14, fill: { color: hex(catColor(i.cat)) }, line: { color: hex(catColor(i.cat)) } });
+      sl.addText(fmtRange(i), { x: 1.05, y, w: 2.6, h: rowH, fontFace: FONT, fontSize: Math.min(14, rowH * 28), color: GREY, valign: 'middle' });
+      sl.addText(i.name, { x: 3.7, y, w: 4.6, h: rowH, fontFace: FONT, fontSize: Math.min(15, rowH * 30), bold: true, color: WHITE, valign: 'middle' });
+      sl.addText(i.activation?.idea || '', { x: 8.4, y, w: 4.4, h: rowH, fontFace: FONT, fontSize: Math.min(12, rowH * 24), color: GREEN, valign: 'middle' });
+    });
+
+    // One slide per moment
+    items.forEach(i => {
+      const s2 = pptx.addSlide(); s2.background = { color: BG };
+      const c = hex(catColor(i.cat));
+      s2.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 0.12, h: 7.5, fill: { color: c }, line: { color: c } });
+      s2.addText(catLabel(i.cat).toUpperCase(), { x: 0.7, y: 0.55, w: 6, h: 0.35, fontFace: FONT, fontSize: 12, bold: true, color: c, charSpacing: 3 });
+      s2.addText(i.name, { x: 0.7, y: 0.9, w: 7.2, h: 1.3, fontFace: FONT, fontSize: 34, bold: true, color: WHITE, valign: 'top', fit: 'shrink' });
+      s2.addText(`${fmtRange(i)}  ·  ${i.region}${i.timing ? `  ·  ${Math.max(1, Math.round(i.timing.days / 7))} wk ${i.timing.side} campaign window` : ''}`, { x: 0.7, y: 2.25, w: 7.2, h: 0.4, fontFace: FONT, fontSize: 14, color: GREY });
+      s2.addText('WHY IT FITS', { x: 0.7, y: 3.0, w: 7, h: 0.3, fontFace: FONT, fontSize: 11, bold: true, color: GREY, charSpacing: 3 });
+      s2.addText(i.reason || '', { x: 0.7, y: 3.35, w: 7.2, h: 2.2, fontFace: FONT, fontSize: 16, color: WHITE, valign: 'top', fit: 'shrink' });
+      if (i.note) s2.addText(`Notes: ${i.note}`, { x: 0.7, y: 5.8, w: 7.2, h: 0.9, fontFace: FONT, fontSize: 12, italic: true, color: GREY, valign: 'top' });
+      // Activation panel
+      s2.addShape(pptx.ShapeType.roundRect, { x: 8.4, y: 0.55, w: 4.3, h: 6.4, rectRadius: 0.15, fill: { color: '10301C' }, line: { color: GREEN, transparency: 55, width: 1 } });
+      s2.addText('SPOTIFY ACTIVATION', { x: 8.7, y: 0.85, w: 3.8, h: 0.3, fontFace: FONT, fontSize: 11, bold: true, color: GREEN, charSpacing: 3 });
+      s2.addText(i.activation?.idea || 'Add an activation idea', { x: 8.7, y: 1.25, w: 3.8, h: 2.6, fontFace: FONT, fontSize: 22, bold: true, color: WHITE, valign: 'top', fit: 'shrink' });
+      if (i.activation?.formats?.length) s2.addText(i.activation.formats.map(f => ({ text: f, options: { bullet: true, breakLine: true } })), { x: 8.7, y: 4.1, w: 3.8, h: 2.2, fontFace: FONT, fontSize: 14, color: GREY, valign: 'top' });
+      s2.addText(`Source: ${i.source || 'Curated'}`, { x: 0.7, y: 6.95, w: 7, h: 0.3, fontFace: FONT, fontSize: 9, color: '5C5C5C' });
+    });
+
+    await pptx.writeFile({ fileName: `${fileStem()}-cultural-moments.pptx` });
+  } catch (e) {
+    alert(`Couldn't build the deck: ${e.message}`);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Download deck';
+  }
+}
+
 function toggleShortlistDrawer(open) {
   const d = document.getElementById('shortlist-drawer');
   const willOpen = open ?? !d.classList.contains('open');
@@ -3520,11 +3631,13 @@ function init() {
   document.getElementById('shortlist-close').onclick = () => toggleShortlistDrawer(false);
   document.getElementById('shortlist-scrim').onclick = () => toggleShortlistDrawer(false);
   document.addEventListener('keydown', e => { if (e.key === 'Escape') toggleShortlistDrawer(false); });
+  document.getElementById('shortlist-deck').onclick = ev => exportDeck(ev.currentTarget);
+  document.getElementById('shortlist-csv').onclick = exportCSV;
   document.getElementById('shortlist-copy').onclick = ev => {
-    const items = [...Shortlist.items].sort((a, b) => a.date.localeCompare(b.date));
+    const items = sortedShortlist();
     if (!items.length) return;
     navigator.clipboard.writeText(items.map(momentText).join('\n\n')).then(() => {
-      ev.target.textContent = 'Copied ✓'; setTimeout(() => (ev.target.textContent = 'Copy all'), 2000);
+      ev.target.textContent = 'Copied ✓'; setTimeout(() => (ev.target.textContent = 'Copy as text'), 2000);
     });
   };
   document.getElementById('shortlist-clear').onclick = () => {
