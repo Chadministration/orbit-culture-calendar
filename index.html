@@ -965,6 +965,110 @@ footer {
   #constellation-container, #constellation-detail { display: none !important; }
   .view-toggle-row { display: none; }
 }
+
+/* ═════════════════════════════════════════════════════════════════════════
+   DESIGN LAYER — glass panels, readable orbit, consistent labels
+   ═════════════════════════════════════════════════════════════════════════ */
+:root {
+  --bg: #08090a; --surface: rgba(255,255,255,.035); --card: rgba(255,255,255,.05); --card-hover: rgba(255,255,255,.08);
+  --border: rgba(255,255,255,.08); --border-strong: rgba(255,255,255,.14); --radius: 16px; --gold: #F5C542;
+}
+body { background: var(--bg) radial-gradient(1000px 520px at 50% -140px, rgba(30,215,96,.15), transparent 70%) no-repeat; }
+nav { background: rgba(8,9,10,.78); backdrop-filter: blur(16px); }
+.nav-browse-btn { border-color: var(--border-strong); color: #eee; font-weight: 600; }
+.hero-glow { display: none; }
+.hero { padding: 64px 24px 36px; max-width: 900px; }
+.hero h1 { font-size: clamp(38px, 6vw, 60px); font-weight: 800; letter-spacing: -.035em; line-height: 1.04; margin-bottom: 14px; }
+.hero p { font-size: 16px; margin-bottom: 30px; }
+.search-card { background: var(--surface); border-color: var(--border); border-radius: var(--radius); backdrop-filter: blur(20px); padding: 24px; }
+.brief-input { background: rgba(0,0,0,.35); border-color: var(--border); border-radius: 10px; }
+.market-chip { background: rgba(255,255,255,.04); border-color: var(--border); }
+.bs-field input, .bs-field select { background: rgba(255,255,255,.06); border-color: var(--border); }
+.bs-field select option { background: #151617; }
+.sl-drawer { background: #0f1011; }
+.sl-item { background: rgba(255,255,255,.04); }
+
+/* results header + segmented view control */
+.results-title { font-size: 32px; font-weight: 800; letter-spacing: -.02em; }
+.o-for { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--grey); margin-bottom: 4px; }
+.view-toggle-row { width: fit-content; margin: 0 0 16px auto; background: var(--surface); border: 1px solid var(--border); border-radius: 500px; padding: 4px; gap: 2px; }
+.view-toggle-btn { background: none; border: none; border-radius: 500px; padding: 7px 14px; font-weight: 600; }
+.view-toggle-btn.active { background: #f5f5f5; color: #08090a; }
+.view-toggle-btn:hover:not(.active) { color: #fff; border: none; }
+
+/* orbit */
+#constellation-container { position: relative; height: 540px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+#constellation-container::before { display: none; }
+.o-orbit-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.o-orbit-svg ellipse { fill: none; stroke: rgba(255,255,255,.06); vector-effect: non-scaling-stroke; }
+.o-orbit-svg line { stroke: rgba(30,215,96,.35); vector-effect: non-scaling-stroke; }
+.o-core { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 128px; height: 128px; border-radius: 50%; display: grid; place-items: center; text-align: center; padding: 10px;
+  background: radial-gradient(circle, rgba(30,215,96,.22), rgba(30,215,96,.03) 70%); border: 1px solid rgba(30,215,96,.45); }
+.o-core b { display: block; font-size: 19px; font-weight: 800; line-height: 1.1; }
+.o-core span { display: block; font-size: 11px; color: var(--grey); margin-top: 3px; line-height: 1.2; }
+.o-node { position: absolute; transform: translate(-50%,-50%); display: flex; align-items: center; gap: 8px; max-width: 290px;
+  background: rgba(12,13,14,.88); border: 1px solid var(--border-strong); border-radius: 500px; padding: 5px 12px 5px 5px;
+  color: #fff; font: 600 13px Inter, sans-serif; white-space: nowrap; cursor: pointer; transition: border-color .15s, transform .15s; }
+.o-node:hover { border-color: rgba(255,255,255,.4); transform: translate(-50%,-50%) scale(1.04); z-index: 2; }
+.o-node.selected { border-color: var(--green); z-index: 2; }
+.o-node small { color: var(--grey); font-weight: 500; font-size: 12px; }
+.o-node.ring0 { box-shadow: 0 0 0 1px rgba(30,215,96,.5), 0 0 28px rgba(30,215,96,.22); font-size: 14px; }
+.o-node.ring2 { font-size: 12px; opacity: .92; }
+.o-dot { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 800; color: #08090a; flex-shrink: 0; }
+.o-more { position: absolute; right: 14px; bottom: 12px; background: none; border: 1px solid var(--border); color: var(--grey); border-radius: 500px; padding: 6px 12px; font: 600 12px Inter, sans-serif; cursor: pointer; }
+.o-more:hover { color: #fff; }
+#constellation-detail, #timeline-detail { background: var(--surface); border-color: var(--border); margin-top: 14px; }
+
+/* shared card bits */
+.o-toprow { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.o-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.o-cat { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--grey); }
+.o-cat i { width: 8px; height: 8px; border-radius: 50%; }
+.o-conf { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 500px; white-space: nowrap; }
+.o-conf.ok { background: rgba(30,215,96,.14); color: var(--green); }
+.o-conf.tbc { background: rgba(246,224,94,.12); color: #F6E05E; }
+.o-conf.live { background: rgba(252,129,129,.13); color: #FC8181; }
+.card-timing-badge { margin-left: 0; }
+.o-rank { font-size: 12px; font-weight: 700; color: #5c5c5c; }
+.o-date { color: var(--grey); font-size: 13.5px; }
+.o-flags { font-size: 12px; }
+.o-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.o-copy { background: none; border: 1px solid var(--border); color: var(--grey); border-radius: 500px; padding: 5px 12px; font: 600 12px Inter, sans-serif; cursor: pointer; }
+.o-copy:hover { color: #fff; border-color: var(--grey); }
+.o-src { font-size: 12px; color: var(--grey); text-decoration: none; }
+a.o-src:hover { color: #fff; text-decoration: underline; }
+
+/* featured */
+.o-featured { display: grid; grid-template-columns: 1.3fr 1fr; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 14px; }
+.o-f-left { padding: 26px; display: flex; flex-direction: column; gap: 8px; }
+.o-f-right { padding: 26px; background: linear-gradient(160deg, rgba(30,215,96,.13), rgba(30,215,96,.02)); border-left: 1px solid var(--border); }
+.o-f-title { font-size: 28px; font-weight: 800; letter-spacing: -.02em; line-height: 1.15; margin-top: 6px; }
+.o-why { color: #d8d8d8; font-size: 14.5px; line-height: 1.55; margin-top: 6px; }
+.o-proof { display: flex; gap: 8px; flex-wrap: wrap; }
+.o-proof span { font-size: 12px; color: var(--grey); background: rgba(255,255,255,.04); border: 1px solid var(--border); border-radius: 8px; padding: 5px 9px; }
+.o-f-left .o-actions { margin-top: 10px; }
+.o-act-k { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--green); }
+.o-act-idea { font-size: 19px; font-weight: 700; letter-spacing: -.01em; line-height: 1.3; margin: 10px 0 12px; }
+.o-act-list { list-style: none; padding: 0; display: grid; gap: 8px; font-size: 14px; color: #d8d8d8; }
+.o-act-list li::before { content: "→ "; color: var(--green); }
+.o-featured.au { border-color: rgba(245,197,66,.3); }
+
+/* grid cards */
+.o-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.o-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; display: flex; flex-direction: column; gap: 6px; transition: border-color .15s, background .15s; }
+.o-card:hover { border-color: var(--border-strong); background: rgba(255,255,255,.05); }
+.o-card.au { border-color: rgba(245,197,66,.28); background: linear-gradient(180deg, rgba(245,197,66,.06), var(--surface)); }
+.o-title { font-size: 17px; font-weight: 700; letter-spacing: -.01em; line-height: 1.3; margin-top: 6px; }
+.o-angle { font-size: 13.5px; color: #e6e6e6; line-height: 1.45; margin-top: 4px; }
+.o-angle b { color: var(--green); font-weight: 600; }
+.o-fmts { display: block; font-size: 11.5px; color: var(--grey); margin-top: 3px; }
+.o-reason { font-size: 12.5px; color: var(--grey); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.o-signal { color: #bdbdbd; font-style: italic; }
+.o-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border); }
+.o-card .star-btn, .o-card .o-copy { padding: 4px 10px; }
+
+@media (max-width: 900px) { .o-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .o-featured { grid-template-columns: 1fr; } .o-f-right { border-left: none; border-top: 1px solid var(--border); } }
+@media (max-width: 600px) { .o-grid { grid-template-columns: 1fr; } .results-title { font-size: 26px; } }
 </style>
 </head>
 <body>
@@ -989,7 +1093,7 @@ footer {
 <div class="hero-glow"></div>
 <section class="hero">
   <h1>Find your <span class="green">cultural orbit.</span></h1>
-  <p>Describe your brief, choose your markets — discover the moments that define your cultural orbit.</p>
+  <p>Paste a brief. We'll find the moments worth showing up for.</p>
 
   <div class="search-card">
     <label class="field-label" for="brief-input">Your brief</label>
@@ -2720,159 +2824,88 @@ function toggleShortlistDrawer(open) {
   if (willOpen) renderShortlistDrawer();
 }
 
-function makeFeaturedCard(e, aiReason) {
-  const color = catColor(e.cat);
-  const marketHtml = e.mkts.includes('GLOBAL')
-    ? `<span class="market-tag global">🌍 Global</span>`
-    : e.mkts.map(m => {
-        const mkt = MARKETS.find(x => x.code === m);
-        return mkt ? `<span class="market-tag">${mkt.flag} ${mkt.name}</span>` : '';
-      }).join('');
-
-  const card = document.createElement('div');
-  card.className = 'event-card-featured fade-up';
-
-  card.innerHTML = `
-    <div class="featured-left">
-      <div>
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-        <div class="featured-label">✦ Top moment</div>
-        ${e.isLive && e.source === 'Bandsintown' ? `<span class="card-gig-badge">♪ Live Gig</span>` : e.isLive && e.source === 'Reddit' ? `<span class="card-reddit-badge">↑ Reddit</span>` : e.isLive ? `<span class="card-live-badge">● Live</span>` : ''}
-        ${e.isGenerated ? `<span class="card-generated-badge">✦ AI-sourced${e.confidence === 'medium' ? ' · verify date' : ''}</span>` : ''}
-      </div>
-        <div class="featured-name">${e.name}</div>
-      </div>
-      <div class="featured-meta">
-        <span class="featured-date">${formatDate(e.date)}</span>${timingBadge(e)}
-        <span class="featured-region">${e.region}</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <span class="featured-cat-badge" style="color:${color}">${catLabel(e.cat)}</span>
-        <div class="featured-markets">${marketHtml}</div>
-      </div>
-    </div>
-    <div class="featured-right">
-      <div class="featured-pull-quote">${aiReason || e.rel}</div>
-      ${activationHtml(e)}
-      <div class="card-actions"><button class="copy-btn" style="position:static;opacity:1" title="Copy to clipboard">Copy</button></div>
-    </div>
-    <div class="featured-rank">01</div>
-  `;
-
-  card.querySelector('.card-actions').prepend(starButton(e, aiReason));
-  card.querySelector('.copy-btn').onclick = (ev) => {
+// Shared pieces for the redesigned cards
+function confidenceLabel(e) {
+  if (e.isTrending) return ['live', '● Trending now'];
+  if (e.source === 'Bandsintown') return ['live', '♪ Live gig'];
+  if (e.isGenerated) return ['tbc', e.confidence === 'medium' ? 'AI-sourced · verify date' : 'AI-sourced'];
+  if (e.note) return ['tbc', 'Date may shift ±1 day'];
+  if (/\bTBC\b|approx/i.test(e.name)) return ['tbc', 'TBC date'];
+  return ['ok', '✓ Confirmed date'];
+}
+// "(dates TBC)" etc. is shown as a label instead of cluttering the name
+const displayName = n => n.replace(/\s*\((dates? TBC|date TBC|approx\.?)\)/i, '');
+function oMeta(e) {
+  const [cls, txt] = confidenceLabel(e);
+  return `<div class="o-meta"><span class="o-cat"><i style="background:${catColor(e.cat)}"></i>${catLabel(e.cat)}</span><span class="o-conf ${cls}">${txt}</span>${timingBadge(e)}</div>`;
+}
+function oDate(e) {
+  const flags = (e.mkts || []).includes('GLOBAL') ? '🌍' : (e.mkts || []).map(c => MARKETS.find(m => m.code === c)?.flag || '').join(' ');
+  return `<div class="o-date">${fmtRange(e)} · ${escHtml(e.region)} <span class="o-flags">${flags}</span></div>`;
+}
+function oSource(e) {
+  const src = escHtml(e.source || 'Curated');
+  return e.url ? `<a class="o-src" href="${escHtml(e.url)}" target="_blank" rel="noopener">${src} ↗</a>` : `<span class="o-src">${src}</span>`;
+}
+function oCopyButton(e, reason) {
+  const b = document.createElement('button');
+  b.className = 'o-copy'; b.textContent = 'Copy'; b.title = 'Copy to clipboard';
+  b.onclick = ev => {
     ev.stopPropagation();
-    const text = momentText({ ...e, reason: aiReason || e.rel });
-    navigator.clipboard.writeText(text).then(() => {
-      const btn = ev.target;
-      btn.textContent = 'Copied ✓';
-      btn.classList.add('copied');
-      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+    navigator.clipboard.writeText(momentText({ ...e, reason: reason || e.rel })).then(() => {
+      b.textContent = 'Copied ✓'; setTimeout(() => (b.textContent = 'Copy'), 2000);
     });
   };
+  return b;
+}
+
+function makeFeaturedCard(e, aiReason) {
+  const a = e.activation;
+  const card = document.createElement('div');
+  card.className = 'o-featured fade-up' + (e.cat === 'Australia' ? ' au' : '');
+  card.innerHTML = `
+    <div class="o-f-left">
+      <div class="o-toprow">${oMeta(e)}<span class="o-rank">01</span></div>
+      <div class="o-f-title">${escHtml(displayName(e.name))}</div>
+      ${oDate(e)}
+      <p class="o-why">${escHtml(aiReason || e.rel || '')}</p>
+      ${aiReason && e.isLive && e.rel ? `<div class="o-proof"><span>${escHtml(e.rel)}</span></div>` : ''}
+      <div class="o-actions"></div>
+    </div>
+    <div class="o-f-right">
+      <div class="o-act-k">Spotify activation</div>
+      ${a?.idea
+        ? `<div class="o-act-idea">${escHtml(a.idea)}</div>${(a.formats || []).length ? `<ul class="o-act-list">${a.formats.map(f => `<li>${escHtml(f)}</li>`).join('')}</ul>` : ''}`
+        : `<div class="o-act-idea">${escHtml(e.rel || 'Add an activation idea')}</div>`}
+    </div>`;
+  const acts = card.querySelector('.o-actions');
+  acts.append(starButton(e, aiReason), oCopyButton(e, aiReason));
+  acts.insertAdjacentHTML('beforeend', oSource(e));
   return card;
 }
 
 function makeSemiCard(e, rank, aiReason) {
-  const color = catColor(e.cat);
-  const marketHtml = e.mkts.includes('GLOBAL')
-    ? `<span class="market-tag global">🌍 Global</span>`
-    : e.mkts.map(m => {
-        const mkt = MARKETS.find(x => x.code === m);
-        return mkt ? `<span class="market-tag">${mkt.flag} ${mkt.name}</span>` : '';
-      }).join('');
-
-  const card = document.createElement('div');
-  card.className = 'event-card-semi fade-up';
-  card.style.animationDelay = `${rank * 0.05}s`;
-  card.style.setProperty('--accent-color', color);
-
-  card.innerHTML = `
-    <div class="card-top">
-      <span class="cat-badge" style="--cat-c:${color}">${catLabel(e.cat)}</span>
-      <span class="priority-dot ${e.pri}" title="Priority: ${e.pri}"></span>
-    </div>
-    <div class="card-name">${e.name}</div>
-    <div class="card-meta">
-      <span class="card-date">${formatDate(e.date)}</span>${timingBadge(e)}
-      <span class="card-region">${e.region}</span>
-    </div>
-    <div class="card-relevance">♪ ${e.rel}</div>
-    ${aiReason ? `<div class="card-ai-reason">✦ ${aiReason}</div>` : ''}
-    ${activationHtml(e)}
-    <div class="card-markets">${marketHtml}</div>
-    <div class="card-actions"></div>
-    <button class="copy-btn" title="Copy to clipboard">Copy</button>
-    <div class="card-rank">${rankLabel(rank)}</div>
-  `;
-
-  card.querySelector('.card-actions').prepend(starButton(e, aiReason));
-  card.querySelector('.copy-btn').onclick = (ev) => {
-    ev.stopPropagation();
-    const text = momentText({ ...e, reason: aiReason || e.rel });
-    navigator.clipboard.writeText(text).then(() => {
-      const btn = ev.target;
-      btn.textContent = 'Copied ✓';
-      btn.classList.add('copied');
-      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
-    });
-  };
-  return card;
+  return makeCard(e, rank - 1, aiReason);
 }
 
 function makeCard(e, idx, aiReason) {
-  // idx is 0-based when called from no-brief path, or rank-offset when called from ranked path
-  // idx is 0-based when called from no-brief path, or rank-offset when called from ranked path
-  // When called from ranked path, idx is already i+4 (so rank 5,6,7...)
-  // When called from no-brief path, idx is 0,1,2... so rank is idx+1
+  // idx is 0-based: rank shown is idx + 1
   const rank = idx + 1;
-  const color = catColor(e.cat);
-  const marketHtml = e.mkts.includes('GLOBAL')
-    ? `<span class="market-tag global">🌍 Global</span>`
-    : e.mkts.map(m => {
-        const mkt = MARKETS.find(x => x.code === m);
-        return mkt ? `<span class="market-tag">${mkt.flag} ${mkt.name}</span>` : '';
-      }).join('');
-
+  const a = e.activation;
   const card = document.createElement('div');
-  const glowClass = (rank >= 4 && rank <= 6) ? ' glow-faint' : '';
-  card.className = 'event-card fade-up' + glowClass;
+  card.className = 'o-card fade-up' + (e.cat === 'Australia' ? ' au' : '');
   card.style.animationDelay = `${Math.min(idx * 0.04, 0.5)}s`;
-  card.style.setProperty('--accent-color', color);
-
   card.innerHTML = `
-    <div class="card-top">
-      <span class="cat-badge" style="--cat-c:${color}">${catLabel(e.cat)}</span>
-      <span class="priority-dot ${e.pri}" title="Priority: ${e.pri}"></span>
-    </div>
-    ${e.isLive && e.source === 'Bandsintown' ? `<div><span class="card-gig-badge">♪ Live Gig</span></div>` : e.isLive && e.source === 'Reddit' ? `<div><span class="card-reddit-badge">↑ Reddit</span></div>` : e.isLive ? `<div><span class="card-live-badge">● Live</span></div>` : ''}
-    ${e.isGenerated ? `<div><span class="card-generated-badge">✦ AI-sourced${e.confidence === 'medium' ? ' · verify date' : ''}</span></div>` : ''}
-    <div class="card-name">${e.name}</div>
-    <div class="card-meta">
-      <span class="card-date">${formatDate(e.date)}</span>${timingBadge(e)}
-      <span class="card-region">${e.region}</span>
-    </div>
-    ${e.rel ? `<div class="card-relevance">♪ ${e.rel}</div>` : ''}
-    ${aiReason ? `<div class="card-ai-reason">✦ ${aiReason}</div>` : ''}
-    ${activationHtml(e)}
-    <div class="card-markets">${marketHtml}</div>
-    ${e.url ? `<a href="${e.url}" target="_blank" rel="noopener" class="card-tm-link">View on ${escHtml(e.source || 'source')} ↗</a>` : ''}
-    <div class="card-actions"></div>
-    <button class="copy-btn" title="Copy to clipboard">Copy</button>
-    <div class="card-rank">${rankLabel(rank)}</div>
-  `;
-
-  card.querySelector('.card-actions').prepend(starButton(e, aiReason));
-  card.querySelector('.copy-btn').onclick = (ev) => {
-    ev.stopPropagation();
-    const text = momentText({ ...e, reason: aiReason || e.rel });
-    navigator.clipboard.writeText(text).then(() => {
-      const btn = ev.target;
-      btn.textContent = 'Copied ✓';
-      btn.classList.add('copied');
-      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
-    });
-  };
+    <div class="o-toprow">${oMeta(e)}<span class="o-rank">${rankLabel(rank)}</span></div>
+    <h3 class="o-title">${escHtml(displayName(e.name))}</h3>
+    ${oDate(e)}
+    ${a?.idea
+      ? `<p class="o-angle"><b>Angle:</b> ${escHtml(a.idea)}${(a.formats || []).length ? ` <span class="o-fmts">${a.formats.map(escHtml).join(' · ')}</span>` : ''}</p>`
+      : e.rel ? `<p class="o-angle"><b>Spotify angle:</b> ${escHtml(e.rel)}</p>` : ''}
+    ${aiReason ? `<p class="o-reason">${escHtml(aiReason)}</p>` : ''}
+    ${a?.idea && e.isLive && e.rel ? `<p class="o-reason o-signal">${escHtml(e.rel)}</p>` : ''}
+    <div class="o-foot">${oSource(e)}<div class="o-actions"></div></div>`;
+  card.querySelector('.o-actions').append(starButton(e, aiReason), oCopyButton(e, aiReason));
   return card;
 }
 
@@ -3034,187 +3067,100 @@ function setView(view) {
 }
 
 function renderConstellation(rankedEvents, brief) {
-  const svg = document.getElementById('constellation-svg');
   const container = document.getElementById('constellation-container');
   const detail = document.getElementById('constellation-detail');
-  svg.innerHTML = '';
   detail.innerHTML = '';
   detail.classList.remove('visible');
 
-  const CX = 450, CY = 300;
-  const rings = [
-    { radius: 170, maxNodes: 3,  size: 72,  glowColor: '#1ED760',              borderColor: '#1ED760' },
-    { radius: 290, maxNodes: 5,  size: 52,  glowColor: 'rgba(155,89,182,0.8)', borderColor: '#9b59b6' },
-    { radius: 400, maxNodes: 99, size: 36,  glowColor: 'rgba(180,180,180,0.4)',borderColor: '#555' },
-  ];
-
-  // Distribute events into rings
-  const ring1 = rankedEvents.slice(0, 3);
-  const ring2 = rankedEvents.slice(3, 8);
-  const ring3 = rankedEvents.slice(8);
-
   const clientName = confirmedProfile?.client || extractClientName(brief);
+  const product = confirmedProfile?.product || '';
+  // Rings as % of the panel: 3 closest, then 6, then 8; the rest live in List/Timeline
+  const RINGS = [{ n: 3, rx: 23, ry: 29, a0: -90 }, { n: 6, rx: 37, ry: 39, a0: -60 }, { n: 8, rx: 44, ry: 45, a0: -112 }];
+  const shown = [];
+  let k = 0;
+  RINGS.forEach((r, ri) => {
+    const slice = rankedEvents.slice(k, k + r.n); k += r.n;
+    slice.forEach((item, j) => {
+      const ang = (r.a0 + j * 360 / Math.max(slice.length, ri === 0 ? 3 : slice.length)) * Math.PI / 180;
+      shown.push({ ...item, ring: ri, rank: rankedEvents.indexOf(item) + 1,
+        x: Math.min(88, Math.max(12, 50 + r.rx * Math.cos(ang))), y: Math.min(94, Math.max(6, 50 + r.ry * Math.sin(ang))) });
+    });
+  });
+  const extra = rankedEvents.length - shown.length;
+  // Live-trend prefixes become a small ↗ so the label shows the actual topic
+  const short = n => {
+    let d = displayName(n), live = false;
+    d = d.replace(/^(Trending (on \w+|search|all week)|Spiking on Wikipedia): /, () => { live = true; return ''; });
+    d = d.length > 34 ? d.slice(0, 32).replace(/[\s(—·-]+$/, '') + '…' : d;
+    return live ? '↗ ' + d : d;
+  };
+  const shortDate = e => formatDate(e.date).replace(/ \d{4}$/, '');
 
-  // Defs for filters
-  const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
-  defs.innerHTML = `
-    <filter id="glow-green" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="4" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-    <filter id="glow-purple" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="3" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-  `;
-  svg.appendChild(defs);
+  container.style.display = 'block';  // must be visible to measure labels
+  container.innerHTML = `
+    <svg class="o-orbit-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      ${RINGS.map(r => `<ellipse cx="50" cy="50" rx="${r.rx}" ry="${r.ry}" />`).join('')}
+      ${shown.filter(n => n.ring === 0).map(n => `<line x1="50" y1="50" x2="${n.x}" y2="${n.y}" />`).join('')}
+    </svg>
+    <div class="o-core"><div><b>${escHtml(clientName)}</b>${product ? `<span>${escHtml(product)}</span>` : ''}</div></div>
+    ${shown.map((n, i) => `
+      <button class="o-node ring${n.ring}" data-i="${i}" style="left:${n.x}%;top:${n.y}%" title="${escHtml(n.event.name)}">
+        <span class="o-dot" style="background:${catColor(n.event.cat)}">${n.rank}</span>${escHtml(short(n.event.name))}<small>${shortDate(n.event)}</small>
+      </button>`).join('')}
+    ${extra > 0 ? `<button class="o-more" id="orbit-more">+${extra} more in List view →</button>` : ''}`;
 
-  // Faint ring circles
-  [170, 290, 400].forEach(r => {
-    const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
-    circle.setAttribute('cx', CX); circle.setAttribute('cy', CY);
-    circle.setAttribute('r', r);
-    circle.setAttribute('fill','none');
-    circle.setAttribute('stroke','rgba(255,255,255,0.04)');
-    circle.setAttribute('stroke-width','1');
-    circle.setAttribute('stroke-dasharray','4 8');
-    svg.appendChild(circle);
+  // Measure every label and push overlapping ones apart (keeps the centre clear, stays in bounds)
+  const W = container.clientWidth, H = container.clientHeight;
+  const els = [...container.querySelectorAll('.o-node')];
+  const boxes = els.map((el, i) => ({ el, w: el.offsetWidth + 10, h: el.offsetHeight + 10, x: shown[i].x / 100 * W, y: shown[i].y / 100 * H, ring: shown[i].ring }));
+  const core = { x: W / 2, y: H / 2, w: 150, h: 150 };
+  const clamp = b => { b.x = Math.min(W - b.w / 2, Math.max(b.w / 2, b.x)); b.y = Math.min(H - b.h / 2, Math.max(b.h / 2, b.y)); };
+  for (let iter = 0; iter < 120; iter++) {
+    let moved = false;
+    for (let i = 0; i < boxes.length; i++) {
+      const a = boxes[i];
+      for (const b of [...boxes.slice(i + 1), core]) {
+        const ox = (a.w + b.w) / 2 - Math.abs(a.x - b.x), oy = (a.h + b.h) / 2 - Math.abs(a.y - b.y);
+        if (ox <= 0 || oy <= 0) continue;
+        moved = true;
+        const fixed = b === core;
+        // Separate along the axis that needs the smaller push (usually vertical for wide pills)
+        if (oy < ox) { const d = (a.y < b.y ? -1 : 1) * oy / (fixed ? 1 : 2); a.y += d; if (!fixed) b.y -= d; }
+        else { const d = (a.x < b.x ? -1 : 1) * ox / (fixed ? 1 : 2); a.x += d; if (!fixed) b.x -= d; }
+      }
+      clamp(a);
+    }
+    if (!moved) break;
+  }
+  boxes.forEach((b, i) => { shown[i].x = b.x / W * 100; shown[i].y = b.y / H * 100; b.el.style.left = `${shown[i].x}%`; b.el.style.top = `${shown[i].y}%`; });
+  // Spokes follow the nodes after relaxation
+  container.querySelectorAll('.o-orbit-svg line').forEach((ln, i) => {
+    const n = shown.filter(s => s.ring === 0)[i];
+    if (n) { ln.setAttribute('x2', n.x); ln.setAttribute('y2', n.y); }
   });
 
-  // Center connecting lines to ring 1 nodes
-  const linesGroup = document.createElementNS('http://www.w3.org/2000/svg','g');
-  linesGroup.setAttribute('id','constellation-lines');
-  svg.appendChild(linesGroup);
-
-  // Center label group
-  const centerGroup = document.createElementNS('http://www.w3.org/2000/svg','g');
-  const centerCircle = document.createElementNS('http://www.w3.org/2000/svg','circle');
-  centerCircle.setAttribute('cx',CX); centerCircle.setAttribute('cy',CY);
-  centerCircle.setAttribute('r','56');
-  centerCircle.setAttribute('fill','#1a1a1a');
-  centerCircle.setAttribute('stroke','#1ED760');
-  centerCircle.setAttribute('stroke-width','1.5');
-  centerGroup.appendChild(centerCircle);
-
-  const fo = document.createElementNS('http://www.w3.org/2000/svg','foreignObject');
-  fo.setAttribute('x', CX - 46); fo.setAttribute('y', CY - 30);
-  fo.setAttribute('width','92'); fo.setAttribute('height','60');
-  fo.innerHTML = `<div xmlns="http://www.w3.org/1999/xhtml" style="color:#fff;font-size:11px;font-weight:800;text-align:center;line-height:1.3;word-wrap:break-word;overflow:hidden;max-height:60px">${clientName}</div>`;
-  centerGroup.appendChild(fo);
-  svg.appendChild(centerGroup);
-
-  // Helper to place a ring of nodes
-  function placeNodes(nodes, ringCfg, ringIndex) {
-    const count = nodes.length;
-    const offsetAngle = ringIndex * 0.4; // slight phase offset per ring
-    nodes.forEach(({event, reason}, idx) => {
-      const angle = (2 * Math.PI / count) * idx + offsetAngle - Math.PI / 2;
-      const nx = CX + ringCfg.radius * Math.cos(angle);
-      const ny = CY + ringCfg.radius * Math.sin(angle);
-      const rank = rankedEvents.indexOf(rankedEvents.find(r => r.event.id === event.id)) + 1;
-      const emoji = CAT_EMOJI[event.cat] || '●';
-      const r = ringCfg.size / 2;
-      const color = catColor(event.cat);
-
-      // Line from center (ring 1 only)
-      if (ringIndex === 0) {
-        const line = document.createElementNS('http://www.w3.org/2000/svg','line');
-        line.setAttribute('x1', CX); line.setAttribute('y1', CY);
-        line.setAttribute('x2', nx); line.setAttribute('y2', ny);
-        line.setAttribute('stroke', 'rgba(255,255,255,0.08)');
-        line.setAttribute('stroke-width','1');
-        linesGroup.appendChild(line);
-      }
-
-      // Node group
-      const g = document.createElementNS('http://www.w3.org/2000/svg','g');
-      g.setAttribute('class','constellation-node');
-      g.setAttribute('data-rank', rank);
-      g.setAttribute('style', `color:${ringCfg.borderColor}`);
-      g.setAttribute('filter', ringIndex === 0 ? 'url(#glow-green)' : ringIndex === 1 ? 'url(#glow-purple)' : '');
-
-      // Circle background
-      const bg = document.createElementNS('http://www.w3.org/2000/svg','circle');
-      bg.setAttribute('class','node-bg');
-      bg.setAttribute('cx', nx); bg.setAttribute('cy', ny);
-      bg.setAttribute('r', r);
-      bg.setAttribute('fill','#0e0e0e');
-      bg.setAttribute('stroke', ringCfg.borderColor);
-      bg.setAttribute('stroke-width','1.5');
-      g.appendChild(bg);
-
-      // Emoji
-      const emojiText = document.createElementNS('http://www.w3.org/2000/svg','text');
-      emojiText.setAttribute('x', nx); emojiText.setAttribute('y', ny + 5);
-      emojiText.setAttribute('text-anchor','middle');
-      emojiText.setAttribute('font-size', Math.round(r * 0.7));
-      emojiText.setAttribute('fill', ringIndex === 0 ? '#1ED760' : ringIndex === 1 ? '#9b59b6' : '#888');
-      emojiText.textContent = emoji;
-      g.appendChild(emojiText);
-
-      // Rank badge
-      const rankText = document.createElementNS('http://www.w3.org/2000/svg','text');
-      rankText.setAttribute('x', nx + r * 0.65); rankText.setAttribute('y', ny - r * 0.65);
-      rankText.setAttribute('text-anchor','middle');
-      rankText.setAttribute('font-size','9');
-      rankText.setAttribute('font-weight','700');
-      rankText.setAttribute('fill','rgba(255,255,255,0.6)');
-      rankText.textContent = rank;
-      g.appendChild(rankText);
-
-      // Label below node
-      const labelText = document.createElementNS('http://www.w3.org/2000/svg','text');
-      labelText.setAttribute('x', nx); labelText.setAttribute('y', ny + r + 14);
-      labelText.setAttribute('text-anchor','middle');
-      labelText.setAttribute('font-size','9');
-      labelText.setAttribute('fill','#777');
-      const shortName = event.name.length > 22 ? event.name.substring(0,20)+'…' : event.name;
-      labelText.textContent = shortName;
-      g.appendChild(labelText);
-
-      // Click handler
-      g.addEventListener('click', () => {
-        // Deselect all
-        svg.querySelectorAll('.constellation-node').forEach(n => {
-          n.classList.remove('selected');
-          n.querySelector('.node-bg').setAttribute('stroke-width','1.5');
-        });
-        g.classList.add('selected');
-        g.querySelector('.node-bg').setAttribute('stroke-width','3');
-
-        // Show detail panel
-        const marketHtml = event.mkts.includes('GLOBAL')
-          ? `<span class="market-tag global">🌍 Global</span>`
-          : event.mkts.map(m => {
-              const mkt = MARKETS.find(x => x.code === m);
-              return mkt ? `<span class="market-tag">${mkt.flag} ${mkt.name}</span>` : '';
-            }).join('');
-
-        detail.innerHTML = `
-          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-            <span style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:${ringCfg.borderColor}">✦ Rank ${rank}</span>
-            <span class="cat-badge" style="--cat-c:${color}">${catLabel(event.cat)}</span>
-          </div>
-          <div class="detail-name">${event.name}</div>
-          <div class="detail-meta">${formatDate(event.date)} · ${event.region} ${timingBadge(event)}</div>
-          ${reason ? `<div class="detail-reason">✦ ${reason}</div>` : `<div class="detail-reason">♪ ${event.rel}</div>`}
-          ${activationHtml(event)}
-          <div class="detail-markets">${marketHtml}</div>
-          <div class="card-actions"></div>
-        `;
-        detail.querySelector('.card-actions').appendChild(starButton(event, reason));
-        detail.classList.add('visible');
-      });
-
-      svg.appendChild(g);
-    });
-  }
-
-  placeNodes(ring1, rings[0], 0);
-  placeNodes(ring2, rings[1], 1);
-  placeNodes(ring3, rings[2], 2);
-
-  container.style.display = 'block';
+  container.querySelectorAll('.o-node').forEach(el => el.onclick = () => {
+    container.querySelectorAll('.o-node').forEach(x => x.classList.remove('selected'));
+    el.classList.add('selected');
+    const { event, reason, rank } = shown[+el.dataset.i];
+    const marketHtml = event.mkts.includes('GLOBAL')
+      ? `<span class="market-tag global">🌍 Global</span>`
+      : event.mkts.map(m => { const mkt = MARKETS.find(x => x.code === m); return mkt ? `<span class="market-tag">${mkt.flag} ${mkt.name}</span>` : ''; }).join('');
+    detail.innerHTML = `
+      <div class="o-toprow">${oMeta(event)}<span class="o-rank">${rankLabel(rank)}</span></div>
+      <div class="detail-name">${escHtml(displayName(event.name))}</div>
+      <div class="detail-meta">${fmtRange(event)} · ${escHtml(event.region)}</div>
+      ${reason ? `<div class="detail-reason">${escHtml(reason)}</div>` : `<div class="detail-reason">♪ ${escHtml(event.rel || '')}</div>`}
+      ${activationHtml(event)}
+      <div class="detail-markets">${marketHtml}</div>
+      <div class="card-actions"></div>`;
+    const acts = detail.querySelector('.card-actions');
+    acts.append(starButton(event, reason), oCopyButton(event, reason));
+    acts.insertAdjacentHTML('beforeend', oSource(event));
+    detail.classList.add('visible');
+    detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+  document.getElementById('orbit-more')?.addEventListener('click', () => setView('list'));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -3373,7 +3319,7 @@ async function runSearch() {
     title.innerHTML = `<span class="count">${filtered.length}</span> moment${filtered.length !== 1 ? 's' : ''} found`;
     meta.textContent = `Showing ${mktLabel} — enter a brief for AI-powered ranking`;
     const regGrid = document.createElement('div');
-    regGrid.className = 'cards-regular-grid';
+    regGrid.className = 'o-grid';
     filtered.forEach((e, i) => regGrid.appendChild(makeCard(e, i, null)));
     grid.appendChild(regGrid);
     section.scrollIntoView({behavior:'smooth', block:'start'});
@@ -3465,7 +3411,8 @@ async function runSearch() {
       const mktLabel = selectedMarkets.length
         ? MARKETS.filter(m => selectedMarkets.includes(m.code)).map(m => m.flag+' '+m.name).join(', ')
         : 'all markets';
-      title.innerHTML = `<span class="count">${rankedEvents.length}</span> moment${rankedEvents.length !== 1 ? 's' : ''} found`;
+      const forWho = [confirmedProfile?.client, confirmedProfile?.product].filter(Boolean).map(escHtml).join(' · ');
+      title.innerHTML = `${forWho ? `<div class="o-for">For ${forWho}</div>` : ''}<span class="count">${rankedEvents.length}</span> moment${rankedEvents.length !== 1 ? 's' : ''}`;
       meta.innerHTML = briefMetaChips(confirmedProfile, mktLabel, window_, generatedRanked.length);
       document.getElementById('meta-edit')?.addEventListener('click', () =>
         document.getElementById('brief-summary').scrollIntoView({ behavior: 'smooth', block: 'center' }));
@@ -3475,7 +3422,7 @@ async function runSearch() {
       document.getElementById('view-toggle-row').style.display = 'flex';
       document.getElementById('timeline-container').style.display = 'block';  // so it can measure its width
       renderTimeline(rankedEvents, window_);
-      setView('orbit');
+      setView(window.innerWidth < 600 ? 'list' : 'orbit');  // orbit & timeline are hidden on phones
 
       // Build list view cards (hidden by default)
       const listFragment = document.createDocumentFragment();
@@ -3483,18 +3430,10 @@ async function runSearch() {
       if (top) {
         listFragment.appendChild(makeFeaturedCard(top.event, top.reason));
       }
-      const duo = rest.slice(0, 2);
-      const remaining = rest.slice(2);
-      if (duo.length > 0) {
-        const duoGrid = document.createElement('div');
-        duoGrid.className = 'cards-duo-grid';
-        duo.forEach(({event, reason}, i) => duoGrid.appendChild(makeSemiCard(event, i + 2, reason)));
-        listFragment.appendChild(duoGrid);
-      }
-      if (remaining.length > 0) {
+      if (rest.length > 0) {
         const regGrid = document.createElement('div');
-        regGrid.className = 'cards-regular-grid';
-        remaining.forEach(({event, reason}, i) => regGrid.appendChild(makeCard(event, i + 3, reason)));
+        regGrid.className = 'o-grid';
+        rest.forEach(({event, reason}, i) => regGrid.appendChild(makeCard(event, i + 1, reason)));
         listFragment.appendChild(regGrid);
       }
       grid.innerHTML = '';
