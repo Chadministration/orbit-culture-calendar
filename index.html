@@ -3060,6 +3060,7 @@ function setView(view) {
   currentView = view;
   ['orbit', 'timeline', 'list'].forEach(v => document.getElementById(`${v}-view-btn`).classList.toggle('active', v === view));
   document.getElementById('constellation-container').style.display = view === 'orbit' ? 'block' : 'none';
+  if (view === 'orbit') document.getElementById('constellation-container')._layout?.();
   document.getElementById('constellation-detail').classList.toggle('visible', view === 'orbit' && !!document.getElementById('constellation-detail').innerHTML.trim());
   document.getElementById('timeline-container').style.display = view === 'timeline' ? 'block' : 'none';
   document.getElementById('timeline-detail').classList.toggle('visible', view === 'timeline' && !!document.getElementById('timeline-detail').innerHTML.trim());
@@ -3109,10 +3110,15 @@ function renderConstellation(rankedEvents, brief) {
       </button>`).join('')}
     ${extra > 0 ? `<button class="o-more" id="orbit-more">+${extra} more in List view →</button>` : ''}`;
 
-  // Measure every label and push overlapping ones apart (keeps the centre clear, stays in bounds)
+  // Measure every label and push overlapping ones apart (keeps the centre clear, stays in bounds).
+  // Runs whenever the panel is visible with a real size: now, on switching to Orbit, and on resize.
+  const home = shown.map(n => ({ x: n.x, y: n.y }));
+  const layout = () => {
   const W = container.clientWidth, H = container.clientHeight;
+  if (!W || !H) return;  // hidden — try again when shown
+  container._laidOutAt = W;
   const els = [...container.querySelectorAll('.o-node')];
-  const boxes = els.map((el, i) => ({ el, w: el.offsetWidth + 10, h: el.offsetHeight + 10, x: shown[i].x / 100 * W, y: shown[i].y / 100 * H, ring: shown[i].ring }));
+  const boxes = els.map((el, i) => ({ el, w: el.offsetWidth + 10, h: el.offsetHeight + 10, x: home[i].x / 100 * W, y: home[i].y / 100 * H, ring: shown[i].ring }));
   const core = { x: W / 2, y: H / 2, w: 150, h: 150 };
   const clamp = b => { b.x = Math.min(W - b.w / 2, Math.max(b.w / 2, b.x)); b.y = Math.min(H - b.h / 2, Math.max(b.h / 2, b.y)); };
   for (let iter = 0; iter < 120; iter++) {
@@ -3138,6 +3144,15 @@ function renderConstellation(rankedEvents, brief) {
     const n = shown.filter(s => s.ring === 0)[i];
     if (n) { ln.setAttribute('x2', n.x); ln.setAttribute('y2', n.y); }
   });
+  };
+  container._layout = layout;
+  layout();
+  if (!container._resizeObs) {
+    container._resizeObs = new ResizeObserver(() => {
+      if (container.clientWidth && container._laidOutAt !== container.clientWidth) container._layout?.();
+    });
+    container._resizeObs.observe(container);
+  }
 
   container.querySelectorAll('.o-node').forEach(el => el.onclick = () => {
     container.querySelectorAll('.o-node').forEach(x => x.classList.remove('selected'));
