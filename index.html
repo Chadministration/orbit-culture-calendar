@@ -422,198 +422,14 @@ nav {
   flex-direction: column;
   gap: 20px;
 }
-.cards-regular-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 16px;
-}
-.cards-duo-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-@media (max-width: 640px) {
-  .cards-duo-grid { grid-template-columns: 1fr; }
-}
 
 /* ── FEATURED CARD (rank 1) ──────────────── */
-.event-card-featured {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-left: 4px solid var(--green);
-  border-radius: var(--radius);
-  padding: 0;
-  display: flex; flex-direction: row;
-  min-height: 260px;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 0 40px rgba(30,215,96,0.5), 0 0 80px rgba(30,215,96,0.2);
-  transition: all .2s;
-}
-.event-card-featured:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 50px rgba(30,215,96,0.6), 0 0 100px rgba(30,215,96,0.25);
-}
-.event-card-featured .featured-rank {
-  position: absolute;
-  bottom: -20px; left: 20px;
-  font-size: 160px;
-  font-weight: 900;
-  line-height: 1;
-  color: var(--white);
-  opacity: 0.04;
-  pointer-events: none;
-  user-select: none;
-  letter-spacing: -8px;
-}
-.event-card-featured .featured-left {
-  flex: 0 0 60%;
-  padding: 32px 28px;
-  display: flex; flex-direction: column; gap: 14px;
-  justify-content: space-between;
-}
-.event-card-featured .featured-right {
-  flex: 0 0 40%;
-  padding: 32px 28px;
-  background: rgba(30,215,96,0.04);
-  border-left: 1px solid rgba(30,215,96,0.15);
-  display: flex; flex-direction: column; justify-content: center;
-}
-.featured-label {
-  display: inline-flex; align-items: center; gap: 6px;
-  font-size: 10px; font-weight: 700;
-  letter-spacing: 2px; text-transform: uppercase;
-  color: var(--green);
-  margin-bottom: 4px;
-}
-.featured-name {
-  font-size: clamp(28px, 3.5vw, 44px);
-  font-weight: 900;
-  line-height: 1.1;
-  letter-spacing: -1px;
-  color: var(--white);
-}
-.featured-meta {
-  display: flex; align-items: center; gap: 10px;
-  flex-wrap: wrap;
-}
-.featured-date {
-  font-size: 14px; font-weight: 600;
-  color: var(--grey);
-}
-.featured-region {
-  font-size: 14px; color: var(--dark-grey);
-}
-.featured-region::before { content: '·'; margin-right: 10px; }
-.featured-cat-badge {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 5px 12px;
-  border-radius: 20px;
-  font-size: 12px; font-weight: 700;
-  background: rgba(255,255,255,0.07);
-}
-.featured-pull-quote {
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 1.5;
-  color: var(--white);
-  font-style: italic;
-  margin-bottom: 16px;
-}
-.featured-pull-quote::before { content: '"'; color: var(--green); font-size: 28px; line-height: 0; vertical-align: -8px; margin-right: 4px; }
-.featured-pull-quote::after  { content: '"'; color: var(--green); font-size: 28px; line-height: 0; vertical-align: -8px; margin-left: 4px; }
-.featured-markets {
-  display: flex; flex-wrap: wrap; gap: 4px;
-}
 
 /* ── SEMI-FEATURED CARD (rank 2-3) ────────── */
-.event-card-semi {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 22px;
-  display: flex; flex-direction: column; gap: 12px;
-  transition: all .2s;
-  cursor: default;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 0 25px rgba(155,89,182,0.4);
-}
-.event-card-semi:hover {
-  border-color: rgba(155,89,182,0.4);
-  transform: translateY(-2px);
-  box-shadow: 0 0 35px rgba(155,89,182,0.5);
-}
-.event-card-semi::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: var(--accent-color, var(--border));
-  border-radius: var(--radius) var(--radius) 0 0;
-}
-.event-card-semi .card-rank {
-  position: absolute;
-  bottom: -12px; right: 16px;
-  font-size: 80px;
-  font-weight: 900;
-  line-height: 1;
-  color: var(--white);
-  opacity: 0.05;
-  pointer-events: none;
-  user-select: none;
-  letter-spacing: -4px;
-}
 
 /* ── REGULAR CARD (rank 4+) ──────────────── */
-.event-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 20px;
-  display: flex; flex-direction: column; gap: 12px;
-  transition: all .2s;
-  cursor: default;
-  position: relative;
-  overflow: hidden;
-}
-.event-card:hover {
-  border-color: #333;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-}
-.event-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: var(--accent-color, var(--border));
-  border-radius: var(--radius) var(--radius) 0 0;
-}
-.event-card .card-rank {
-  position: absolute;
-  bottom: -12px; right: 12px;
-  font-size: 64px;
-  font-weight: 900;
-  line-height: 1;
-  color: var(--white);
-  opacity: 0.04;
-  pointer-events: none;
-  user-select: none;
-  letter-spacing: -3px;
-}
 
 /* glow variants for rank 4-6 */
-.event-card.glow-faint {
-  box-shadow: 0 0 15px rgba(155,89,182,0.2);
-}
-
-.card-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 8px;
-}
 
 .cat-badge {
   display: inline-flex; align-items: center; gap: 5px;
@@ -626,117 +442,12 @@ nav {
   color: var(--cat-c);
 }
 
-.priority-dot {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  margin-top: 4px;
-}
-.priority-dot.HIGH   { background: #1DB954; }
-.priority-dot.MEDIUM { background: #FFAA00; }
-.priority-dot.LOW    { background: #535353; }
-
-.card-name {
-  font-size: 16px;
-  font-weight: 700;
-  line-height: 1.3;
-  color: var(--white);
-}
-
-.card-meta {
-  display: flex; align-items: center; gap: 8px;
-  flex-wrap: wrap;
-}
-
-.card-date {
-  font-size: 12px;
-  color: var(--dark-grey);
-  font-weight: 500;
-}
-.card-region {
-  font-size: 12px;
-  color: var(--dark-grey);
-}
-.card-region::before { content: '·'; margin-right: 8px; }
-
-.card-relevance {
-  font-size: 13px;
-  color: var(--green);
-  font-style: italic;
-  font-weight: 400;
-  line-height: 1.4;
-}
-
-.card-tm-link {
-  font-size: 11px;
-  color: var(--grey);
-  text-decoration: none;
-  display: block;
-  margin-top: 4px;
-}
-.card-tm-link:hover { color: var(--green); }
-
-.card-reddit-badge {
-  display: inline-flex; align-items: center;
-  padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700;
-  color: #FF4500; background: rgba(255,69,0,0.12); border: 1px solid rgba(255,69,0,0.3);
-}
 .card-timing-badge {
   display: inline-flex; align-items: center; margin-left: 8px;
   padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700;
   color: #fbbf24; background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.35);
 }
-.card-gig-badge {
-  display: inline-flex; align-items: center;
-  padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700;
-  color: #a78bfa; background: rgba(167,139,250,0.12); border: 1px solid rgba(167,139,250,0.35);
-}
-.card-live-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: #fff;
-  background: rgba(255,60,60,0.85);
-  padding: 2px 7px;
-  border-radius: 20px;
-  margin-bottom: 4px;
-}
 
-.card-generated-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--green);
-  background: rgba(30,215,96,0.12);
-  border: 1px solid rgba(30,215,96,0.3);
-  padding: 2px 7px;
-  border-radius: 20px;
-  margin-bottom: 4px;
-}
-
-.card-ai-reason {
-  font-size: 12px;
-  color: var(--grey);
-  line-height: 1.4;
-  background: rgba(29,185,84,0.07);
-  border-left: 2px solid var(--green);
-  padding: 6px 10px;
-  border-radius: 0 6px 6px 0;
-  margin-top: 2px;
-}
-
-.card-markets {
-  display: flex; flex-wrap: wrap; gap: 4px;
-  margin-top: auto;
-}
 .market-tag {
   font-size: 11px;
   padding: 3px 8px;
@@ -749,24 +460,6 @@ nav {
   color: var(--green);
   background: rgba(29,185,84,0.1);
 }
-
-.copy-btn {
-  position: absolute;
-  bottom: 12px; right: 12px;
-  background: rgba(255,255,255,0.08);
-  border: none;
-  border-radius: 6px;
-  padding: 4px 8px;
-  color: var(--grey);
-  font-family: inherit;
-  font-size: 11px;
-  cursor: pointer;
-  opacity: 0;
-  transition: all .18s;
-}
-.event-card:hover .copy-btn { opacity: 1; }
-.copy-btn:hover { background: rgba(255,255,255,0.15); color: var(--white); }
-.copy-btn.copied { color: var(--green); }
 
 /* Empty state */
 .empty-state {
@@ -890,7 +583,6 @@ footer {
   to   { opacity: 1; transform: translateY(0); }
 }
 .fade-up { animation: fadeUp .35s ease both; }
-.fade-up-delay { animation: fadeUp .35s ease .1s both; }
 
 /* ── UTILS ───────────────────────────────── */
 .hidden { display: none !important; }
@@ -918,10 +610,6 @@ footer {
   0%, 100% { filter: drop-shadow(0 0 6px currentColor); transform: scale(1); }
   50% { filter: drop-shadow(0 0 14px currentColor); transform: scale(1.05); }
 }
-.constellation-node { cursor: pointer; animation: nodeFloat 3s ease-in-out infinite; }
-.constellation-node:nth-child(2n) { animation-delay: -1s; }
-.constellation-node:nth-child(3n) { animation-delay: -1.7s; }
-.constellation-node.selected circle.node-bg { stroke-width: 3; }
 
 #constellation-detail {
   background: var(--surface);
@@ -1066,6 +754,8 @@ a.o-src:hover { color: #fff; text-decoration: underline; }
 .o-signal { color: #bdbdbd; font-style: italic; }
 .o-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border); }
 .o-card .star-btn, .o-card .o-copy { padding: 4px 10px; }
+.o-foot .o-actions { flex-wrap: nowrap; flex-shrink: 0; }
+.o-foot .o-src { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 @media (max-width: 900px) { .o-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .o-featured { grid-template-columns: 1fr; } .o-f-right { border-left: none; border-top: 1px solid var(--border); } }
 @media (max-width: 600px) { .o-grid { grid-template-columns: 1fr; } .results-title { font-size: 26px; } }
@@ -1138,7 +828,6 @@ a.o-src:hover { color: #fff; text-decoration: underline; }
     <button class="view-toggle-btn" id="list-view-btn">◫ List view</button>
   </div>
   <div id="constellation-container" style="display:none">
-    <svg id="constellation-svg" viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg"></svg>
   </div>
   <div id="constellation-detail"></div>
   <div id="timeline-container" style="display:none"></div>
@@ -1771,10 +1460,6 @@ function formatDate(d) {
   return day ? `${parseInt(day)} ${months[parseInt(m)-1]} ${y}` : `${months[parseInt(m)-1]} ${y}`;
 }
 
-function getEventMarkets(event) {
-  if (event.mkts.includes('GLOBAL')) return 'GLOBAL';
-  return event.mkts;
-}
 
 function catColor(cat) {
   return (CATEGORIES[cat] || {color:'#888'}).color;
@@ -1796,7 +1481,6 @@ const TICKETMASTER_API_KEY = ''; // not used when IS_NETLIFY; set in Netlify env
 const IS_NETLIFY = window.location.hostname !== 'localhost' &&
                    window.location.hostname !== '127.0.0.1' &&
                    !window.location.protocol.startsWith('file');
-const PROXY_BASE = IS_NETLIFY ? '' : null; // '' means use relative /api/ paths
 const TMDB_API_KEY = ''; // set in Netlify env vars
 
 // Market code → Ticketmaster country code mapping
@@ -2859,9 +2543,6 @@ function makeFeaturedCard(e, aiReason) {
   return card;
 }
 
-function makeSemiCard(e, rank, aiReason) {
-  return makeCard(e, rank - 1, aiReason);
-}
 
 function makeCard(e, idx, aiReason) {
   // idx is 0-based: rank shown is idx + 1
@@ -2887,18 +2568,6 @@ function makeCard(e, idx, aiReason) {
 // ─────────────────────────────────────────────────────────────────────────────
 // CONSTELLATION
 // ─────────────────────────────────────────────────────────────────────────────
-const CAT_EMOJI = {
-  'Music & Festivals':      '♪',
-  'Sports':                 '◈',
-  'Film & TV':              '▶',
-  'Cultural & Religious':   '✦',
-  'Public Holidays':        '◎',
-  'Historical Anniversary': '⟳',
-  'Awards Shows':           '★',
-  'Pop Culture':            '◉',
-  'Australia':              '◆',
-};
-
 function extractClientName(brief) {
   // Skip-words that appear capitalised but aren't brand names
   const SKIP = new Set(['The','A','An','We','Our','This','They','Their','Its','It','In','On','At','To','For','Of','And','Or','But','With','From','By','As','Is','Are','Was','Were','Has','Have','Had','Will','Would','Could','Should','May','Can','Be','Been','Being','That','Which','Who','What','When','Where','How','Why','Pitch','Information','Type','Brief','Campaign','Brand','Strategy','Overview','Summary','Background','Objective','Target','Audience','Market','Key','Main','Core','Primary','Secondary','New','Old','Big','Small','Launch','Product','Service','Initiative','Project','Program','Plan','Insight','Creative','Digital','Social','Media','Content','Channel','Platform','Agency','Client','Account','Budget','Scope','Deliverable','Timeline','Date','Quarter','Year','Month','Week','RFP','CRM','SOW','NDA','TBC','TBD','FYI','CEO','CMO','CFO','COO','VP','SVP','EVP','MD','AU','NZ','UK','US','APAC','EMEA','GLOBAL','EOFY','Q1','Q2','Q3','Q4']);
