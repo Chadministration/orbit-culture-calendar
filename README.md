@@ -13,7 +13,7 @@
 Brief ──► 1. Read brief (AI)  ──► editable summary card  ──► user confirms
                                                                │
           2. Gather candidates ◄───────────────────────────────┘
-             • curated calendar (457 events, 2026–27)
+             • curated calendar (465 events, 2026–27) + yearly moments rolled into 2027
              • holidays + faith/cultural dates for chosen markets
              • live trends, releases, events, news, album anniversaries
                                    │
@@ -23,6 +23,7 @@ Brief ──► 1. Read brief (AI)  ──► editable summary card  ──► u
              • brand safety (no alcohol / health-awareness / grief / politics where wrong for the brand)
              • campaign window ±3 weeks (outside-window moments flagged)
              • market fit (global moments only if big AND a direct fit)
+             • region fit (a state-specific brief drops other states' local events)
              • de-duplication
                                    │
           5. Show: Orbit · Timeline · List  ──► shortlist ──► deck / CSV
@@ -50,7 +51,7 @@ Everything user-facing is one file, `index.html` (vanilla HTML/CSS/JS, no build 
 
 | Source | Used for | Key needed | Notes |
 |---|---|---|---|
-| Curated calendar (`EVENTS_RAW`) | 457 hand-picked moments, 2026–27; Australian moments tagged gold | — | Past events are hidden automatically. Uncertain dates are marked "TBC" |
+| Curated calendar (`EVENTS_RAW`) | 465 hand-picked moments, 2026–27; Australian moments tagged gold | — | Past events are hidden automatically. Uncertain dates are marked "TBC". Yearly moments entered only for 2026 are copied into 2027 as "date TBC" (`projectNextYear`); ended festivals are listed in `DEFUNCT` |
 | OpenAI (`gpt-4o`) | Reading the brief; ranking, reasons, activation ideas | `OPENAI_API_KEY` | Two calls per search |
 | Google public calendars | Holidays + observances for 12 markets; Hindu, Christian, Orthodox, Chinese lunar, Korean, Buddhist/Sikh/Jain dates | — | Nager.Date as fallback |
 | Hebcal / Aladhan | Jewish / Islamic dates | — | Islamic dates can shift ±1 day |
