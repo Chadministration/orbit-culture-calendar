@@ -1475,7 +1475,8 @@ function projectNextYear(raw) {
       return true;
     })
     .map(e => {
-      const fixed = /\bday\b|\bweek\b|\bmonth\b|\beve\b/i.test(e.name) && !/festival/i.test(e.name);
+      // Month-long moments starting on the 1st (Movember, Dry July) also keep their calendar date
+      const fixed = (/\bday\b|\bweek\b|\bmonth\b|\beve\b/i.test(e.name) && !/festival/i.test(e.name)) || e.date.endsWith('-01');
       return { ...e, date: shift(e.date, fixed), ...(e.end ? { end: shift(e.end, fixed) } : {}),
         name: `${e.name.replace(/\s*\(.*?\)\s*$/, '')} 2027 (date TBC)`, projected: true };
     });
@@ -1488,7 +1489,8 @@ const EVENTS_ALL = [...EVENTS_RAW, ...projectNextYear(EVENTS_RAW)].map((e, i) =>
 }));
 
 // Only moments that haven't finished yet — past events are hidden from search and browse
-const TODAY_ISO = new Date().toISOString().split('T')[0];
+// The user's local date (toISOString is UTC, which is still "yesterday" before ~10am in Australia)
+const TODAY_ISO = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
 const EVENTS = EVENTS_ALL.filter(e => (e.end || e.date) >= TODAY_ISO);
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -3089,7 +3091,13 @@ async function runSearch() {
     ];
 
     // Merge: curated DB + live events (deduplicated by name similarity won't matter at AI stage)
-    const allCandidates = [...candidateEvents, ...liveEvents];
+    // Only show the AI moments it could actually keep: inside the confirmed campaign window (± buffer)
+    // and not another state's local events. Otherwise its picks get filtered out afterwards and
+    // the result list comes back short.
+    const preWindow = confirmedProfile?.campaign_end
+      ? resolveCampaignWindow({ start: confirmedProfile.campaign_start, end: confirmedProfile.campaign_end }) : null;
+    const usable = e => (!preWindow || !e.date || tagTiming({ ...e }, preWindow)) && fitsRegion(e, confirmedProfile?.region) && !DEFUNCT.test(e.name);
+    const allCandidates = [...candidateEvents, ...liveEvents].filter(usable);
 
     document.querySelector('.loading-text').textContent = 'AI is ranking your moments…';
     const { dbResults, generatedEvents, relevantArtists, campaignWindow } = await rankEventsWithAI(brief, allCandidates, confirmedProfile);
