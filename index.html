@@ -694,12 +694,13 @@ nav { background: rgba(8,9,10,.78); backdrop-filter: blur(16px); }
   background: radial-gradient(circle, rgba(30,215,96,.22), rgba(30,215,96,.03) 70%); border: 1px solid rgba(30,215,96,.45); }
 .o-core b { display: block; font-size: 19px; font-weight: 800; line-height: 1.1; }
 .o-core span { display: block; font-size: 11px; color: var(--grey); margin-top: 3px; line-height: 1.2; }
-.o-node { position: absolute; transform: translate(-50%,-50%); display: flex; align-items: center; gap: 8px; max-width: 290px;
+.o-node { position: absolute; transform: translate(-50%,-50%); display: flex; align-items: center; gap: 8px; max-width: 320px;
   background: rgba(12,13,14,.88); border: 1px solid var(--border-strong); border-radius: 500px; padding: 5px 12px 5px 5px;
   color: #fff; font: 600 13px Inter, sans-serif; white-space: nowrap; cursor: pointer; transition: border-color .15s, transform .15s; }
 .o-node:hover { border-color: rgba(255,255,255,.4); transform: translate(-50%,-50%) scale(1.04); z-index: 2; }
 .o-node.selected { border-color: var(--green); z-index: 2; }
-.o-node small { color: var(--grey); font-weight: 500; font-size: 12px; }
+.o-node .o-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; }  /* long names shorten, the date always fits inside the pill */
+.o-node small { color: var(--grey); font-weight: 500; font-size: 12px; flex-shrink: 0; }
 .o-node.ring0 { box-shadow: 0 0 0 1px rgba(30,215,96,.5), 0 0 28px rgba(30,215,96,.22); font-size: 14px; }
 .o-node.ring2 { font-size: 12px; opacity: .92; }
 .o-dot { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 800; color: #08090a; flex-shrink: 0; }
@@ -2054,7 +2055,7 @@ TRENDING: Items tagged "trending" are what people are searching/posting/watching
 
 IMPORTANT: Only include results with tonal_risk "LOW" or "MEDIUM". Do NOT include any event with tonal_risk "HIGH" in your results array.
 
-For "results": include 5–15 database events. Be genuinely selective — if an event is outside the campaign window AND has weak thematic relevance, exclude it. Quality over quantity.
+For "results": include 8–15 database events. Leave out events that are outside the campaign window AND weakly relevant, but don't over-filter: every in-window moment in the brief's market or region that a strategist would realistically mention (local sport and rivalries, long weekends, local music awards, First Nations moments, major national days) belongs in the list — mark looser ones "stretch" rather than dropping them. Aim for 10–15 moments in total across "results" and "generated".
 For "generated": include 3–8 additional real moments NOT in the database. These MUST be specific to the brand's industry/category and campaign themes — not generic cultural moments that could apply to any brand. For a cruise brand: think port city events, travel expos, holiday booking peaks, adventure/escape cultural moments. For a sportswear brand: specific tournaments, athlete milestones, fitness trends. For a tech brand: product launches, gaming events, viral internet moments. Only include events with confidence "high" (you are certain they exist/are scheduled) or "medium" (very likely but date may be approximate). Never fabricate. Always explain WHY this moment connects to this specific brand's world.
 
 EVENTS DATABASE:
@@ -2819,7 +2820,7 @@ function renderConstellation(rankedEvents, brief) {
     <div class="o-core"><div><b>${escHtml(clientName)}</b>${product ? `<span>${escHtml(product)}</span>` : ''}</div></div>
     ${shown.map((n, i) => `
       <button class="o-node ring${n.ring}" data-i="${i}" style="left:${n.x}%;top:${n.y}%" title="${escHtml(n.event.name)}">
-        <span class="o-dot" style="background:${catColor(n.event.cat)}">${n.rank}</span>${escHtml(short(n.event.name))}<small>${shortDate(n.event)}</small>
+        <span class="o-dot" style="background:${catColor(n.event.cat)}">${n.rank}</span><span class="o-name">${escHtml(short(n.event.name))}</span><small>${shortDate(n.event)}</small>
       </button>`).join('')}
     ${extra > 0 ? `<button class="o-more" id="orbit-more">+${extra} more in List view →</button>` : ''}`;
 
