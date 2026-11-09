@@ -724,6 +724,15 @@ nav { background: rgba(8,9,10,.78); backdrop-filter: blur(16px); }
 .o-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .o-copy { background: none; border: 1px solid var(--border); color: var(--grey); border-radius: 500px; padding: 5px 12px; font: 600 12px Inter, sans-serif; cursor: pointer; }
 .o-copy:hover { color: #fff; border-color: var(--grey); }
+.o-hide { background: none; border: 1px solid var(--border); color: var(--grey); border-radius: 500px; padding: 5px 12px; font: 600 12px Inter, sans-serif; cursor: pointer; }
+.o-hide:hover { color: #ff8a80; border-color: rgba(255,138,128,.6); }
+.o-hide.compact { width: 28px; padding: 4px 0 !important; text-align: center; }
+.results-more { display: flex; flex-direction: column; align-items: center; gap: 10px; margin: 28px 0 8px; text-align: center; }
+.more-btn { background: transparent; border: 1px solid var(--green); color: var(--green); border-radius: 500px; padding: 10px 22px; font: 700 14px Inter, sans-serif; cursor: pointer; transition: background .15s; }
+.more-btn:hover:not(:disabled) { background: rgba(30,215,96,.1); }
+.more-btn:disabled { opacity: .6; cursor: wait; }
+.more-note { color: var(--grey); font-size: 12px; }
+.more-note button { background: none; border: none; color: var(--green); font: inherit; cursor: pointer; text-decoration: underline; padding: 0 4px; }
 .o-src { font-size: 12px; color: var(--grey); text-decoration: none; }
 a.o-src:hover { color: #fff; text-decoration: underline; }
 
@@ -754,7 +763,7 @@ a.o-src:hover { color: #fff; text-decoration: underline; }
 .o-reason { font-size: 12.5px; color: var(--grey); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .o-signal { color: #bdbdbd; font-style: italic; }
 .o-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border); }
-.o-card .star-btn, .o-card .o-copy { padding: 4px 10px; }
+.o-card .star-btn, .o-card .o-copy, .o-card .o-hide { padding: 4px 10px; }
 .o-foot .o-actions { flex-wrap: nowrap; flex-shrink: 0; }
 .o-foot .o-src { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
@@ -1942,7 +1951,7 @@ function mapTMCategory(segment) {
   return map[segment] || 'Pop Culture';
 }
 
-async function rankEventsWithAI(brief, events, profile = null) {
+async function rankEventsWithAI(brief, events, profile = null, opts = {}) {
   const eventsForAI = events.map(e => ({
     id: e.id,
     name: e.name,
@@ -2079,7 +2088,13 @@ ${JSON.stringify(eventsForAI, null, 0)}`;
         { role: 'system', content: systemPrompt },
         { role: 'user', content: `Creative brief: ${brief}` + (profile
           ? `\n\nCONFIRMED BRIEF DETAILS (checked by the user — these override anything in the brief text above):\n${JSON.stringify(profile, null, 1)}`
-          : '') }
+          : '')
+          + (opts.exclude?.length
+            ? `\n\nALREADY SHOWN OR REJECTED BY THE USER — don't return these again, or near-duplicates of them:\n- ${opts.exclude.join('\n- ')}`
+            : '')
+          + (opts.round
+            ? `\n\nThe user asked for MORE moments. Return the next-best 5–10 (results and generated combined), still following every rule above. Fewer is fine — never pad with weak picks.`
+            : '') }
       ]
     })
   });
@@ -2132,7 +2147,7 @@ ${JSON.stringify(eventsForAI, null, 0)}`;
 
   // Convert generated events into result-like objects with a special marker
   const generatedResults = safeGenerated.map((g, i) => ({
-    id: `generated_${i}`,
+    id: `generated_${opts.round || 0}_${i}`,
     name: g.name,
     date: g.date,
     cat: g.cat || 'Pop Culture',
@@ -2610,7 +2625,7 @@ function makeFeaturedCard(e, aiReason) {
         : `<div class="o-act-idea">${escHtml(e.rel || 'Add an activation idea')}</div>`}
     </div>`;
   const acts = card.querySelector('.o-actions');
-  acts.append(starButton(e, aiReason), oCopyButton(e, aiReason));
+  acts.append(starButton(e, aiReason), oCopyButton(e, aiReason), hideButton(e));
   acts.insertAdjacentHTML('beforeend', oSource(e));
   return card;
 }
@@ -2633,7 +2648,7 @@ function makeCard(e, idx, aiReason) {
     ${aiReason ? `<p class="o-reason">${escHtml(aiReason)}</p>` : ''}
     ${a?.idea && e.isLive && e.rel ? `<p class="o-reason o-signal">${escHtml(e.rel)}</p>` : ''}
     <div class="o-foot">${oSource(e)}<div class="o-actions"></div></div>`;
-  card.querySelector('.o-actions').append(starButton(e, aiReason), oCopyButton(e, aiReason));
+  card.querySelector('.o-actions').append(starButton(e, aiReason), oCopyButton(e, aiReason), hideButton(e, true));
   return card;
 }
 
@@ -2767,7 +2782,7 @@ function renderTimeline(rankedEvents, w) {
       <div class="detail-reason">✦ ${escHtml(reason || event.rel || '')}</div>
       ${activationHtml(event)}
       <div class="card-actions"></div>`;
-    detail.querySelector('.card-actions').appendChild(starButton(event, reason));
+    detail.querySelector('.card-actions').append(starButton(event, reason), hideButton(event));
     detail.classList.add('visible');
   });
 }
@@ -2886,7 +2901,7 @@ function renderConstellation(rankedEvents, brief) {
       <div class="detail-markets">${marketHtml}</div>
       <div class="card-actions"></div>`;
     const acts = detail.querySelector('.card-actions');
-    acts.append(starButton(event, reason), oCopyButton(event, reason));
+    acts.append(starButton(event, reason), oCopyButton(event, reason), hideButton(event));
     acts.insertAdjacentHTML('beforeend', oSource(event));
     detail.classList.add('visible');
     detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -3029,6 +3044,163 @@ function briefMetaChips(profile, mktLabel, window_, aiCount) {
   </div>`;
 }
 
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RESULTS STATE — so "Not relevant" and "Find more" can update the page without a new search
+// ─────────────────────────────────────────────────────────────────────────────
+let lastSearch = null;  // { brief, candidates, window_, items, mktLabel, round, aiCount, loading, note }
+
+// "Not relevant": hidden per client, so hiding Vivid for a Queensland brief doesn't hide it for a Sydney one.
+// The full list doubles as a log of bad or weak data to fix ("Copy list").
+const HIDDEN_KEY = 'orbit-hidden-v1';
+const Hidden = {
+  items: (() => { try { return JSON.parse(localStorage.getItem(HIDDEN_KEY) || '[]'); } catch { return []; } })(),
+  save() { try { localStorage.setItem(HIDDEN_KEY, JSON.stringify(this.items)); } catch {} },
+  scope() { return (confirmedProfile?.client || '').toLowerCase().trim(); },
+  forScope() { const c = this.scope(); return this.items.filter(h => h.client === c); },
+  has(e) { const k = normName(e.name); return !!k && this.forScope().some(h => h.key === k); },
+  add(e) {
+    if (this.has(e)) return;
+    this.items.push({ client: this.scope(), clientName: confirmedProfile?.client || '', key: normName(e.name),
+      name: displayName(e.name), date: e.date, source: e.isGenerated ? 'AI-sourced' : (e.source || 'Curated calendar'), on: TODAY_ISO });
+    this.save();
+  },
+  clearScope() { const c = this.scope(); this.items = this.items.filter(h => h.client !== c); this.save(); },
+};
+
+function hideButton(e, compact) {
+  const b = document.createElement('button');
+  b.className = 'o-hide' + (compact ? ' compact' : ''); b.textContent = compact ? '✕' : 'Not relevant';
+  b.setAttribute('aria-label', 'Not relevant');
+  b.title = 'Remove this moment and leave it out of future searches for this client';
+  b.onclick = ev => { ev.stopPropagation(); hideMoment(e); };
+  return b;
+}
+
+function hideMoment(e) {
+  Hidden.add(e);
+  if (!lastSearch) return;
+  const k = normName(e.name);
+  lastSearch.items = lastSearch.items.filter(({ event }) => normName(event.name) !== k);
+  lastSearch.note = `Removed “${displayName(e.name)}”`;
+  showResults(true);
+}
+
+// AI picks → full result items, filtered to the brief's markets, region and window
+function buildRanked(dbResults, generatedEvents, gigEvents, candidates, window_) {
+  const byId = {};
+  candidates.forEach(e => { byId[e.id] = e; });
+  const db = dbResults
+    .filter(r => byId[r.id])
+    .map(r => ({ event: { ...byId[r.id], activation: r.activation }, reason: r.reason, fit: r.fit }))
+    .filter(({ event }) => _tonalyFilter(event.name, event.cat));
+  const gen = generatedEvents.map(e => ({ event: e, reason: e.reason, fit: e.fit }));
+  const gigs = gigEvents.map(e => ({ event: e, reason: `Live ${e.artistName} show in ${e.region} — a direct audience activation opportunity.` }));
+  const fits = ({ event, fit }) => !DEFUNCT.test(event.name) && !Hidden.has(event) && fitsMarkets(event, selectedMarkets, fit)
+    && fitsRegion(event, confirmedProfile?.region) && tagTiming(event, window_);
+  // Generated and gig moments slot in after the top 3 database picks
+  return [...db.slice(0, 3), ...gen, ...gigs, ...db.slice(3)].filter(fits).filter(uniqueMoment());
+}
+
+async function findMore() {
+  const st = lastSearch;
+  if (!st || st.loading) return;
+  st.loading = true; st.note = ''; renderMoreBar();
+  try {
+    const shown = new Set(st.items.map(({ event }) => normName(event.name)));
+    const pool = st.candidates.filter(e => !shown.has(normName(e.name)) && !Hidden.has(e));
+    const exclude = [...st.items.map(({ event }) => displayName(event.name)), ...Hidden.forScope().map(h => h.name)];
+    st.round += 1;
+    const { dbResults, generatedEvents } = await rankEventsWithAI(st.brief, pool, confirmedProfile, { exclude, round: st.round });
+    if (lastSearch !== st) return;  // a new search started meanwhile
+    const seen = uniqueMoment();
+    st.items.forEach(seen);
+    const added = buildRanked(dbResults, generatedEvents, [], pool, st.window_).filter(seen);
+    st.items.push(...added);
+    st.aiCount += added.filter(x => x.event.isGenerated).length;
+    st.note = added.length ? `Added ${added.length} more moment${added.length === 1 ? '' : 's'}` : 'No more strong matches. Try editing the brief or widening the dates.';
+  } catch (err) {
+    st.note = `Couldn't find more: ${err.message}`;
+  }
+  st.loading = false;
+  if (lastSearch === st) showResults(true);
+}
+
+function renderMoreBar() {
+  const st = lastSearch;
+  let bar = document.getElementById('results-more');
+  if (!st) { bar?.remove(); return; }
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'results-more'; bar.className = 'results-more';
+    document.getElementById('cards-grid').after(bar);
+  }
+  const hidden = Hidden.forScope().length;
+  const client = escHtml(confirmedProfile?.client || 'this client');
+  bar.innerHTML = `
+    <button class="more-btn" id="more-btn" ${st.loading ? 'disabled' : ''}>${st.loading ? 'Finding more moments…' : '+ Find more moments'}</button>
+    ${st.note ? `<div class="more-note">${escHtml(st.note)}</div>` : ''}
+    ${hidden ? `<div class="more-note">${hidden} moment${hidden === 1 ? '' : 's'} hidden for ${client}
+      <button id="hidden-reset">Show again</button>·<button id="hidden-copy">Copy list</button></div>` : ''}`;
+  bar.querySelector('#more-btn').onclick = findMore;
+  bar.querySelector('#hidden-reset')?.addEventListener('click', () => {
+    Hidden.clearScope(); st.note = 'Hidden moments will come back on your next search'; renderMoreBar();
+  });
+  bar.querySelector('#hidden-copy')?.addEventListener('click', ev => {
+    const lines = Hidden.items.map(h => `${h.name} (${h.date || 'no date'}) · ${h.source} · hidden for ${h.clientName || 'no client'} on ${h.on}`);
+    navigator.clipboard.writeText(lines.join('\n')).then(() => { ev.target.textContent = 'Copied ✓'; });
+  });
+}
+
+// Draws the current results in all three views. keepView: stay on the view the user is looking at.
+function showResults(keepView) {
+  const st = lastSearch;
+  const { items, window_ } = st;
+  const grid = document.getElementById('cards-grid');
+  const title = document.getElementById('results-title');
+  const meta = document.getElementById('results-meta');
+  const forWho = [confirmedProfile?.client, confirmedProfile?.product].filter(Boolean).map(escHtml).join(' · ');
+  title.innerHTML = `${forWho ? `<div class="o-for">For ${forWho}</div>` : ''}<span class="count">${items.length}</span> moment${items.length !== 1 ? 's' : ''}`;
+  meta.innerHTML = briefMetaChips(confirmedProfile, st.mktLabel, window_, st.aiCount);
+  document.getElementById('meta-edit')?.addEventListener('click', () =>
+    document.getElementById('brief-summary').scrollIntoView({ behavior: 'smooth', block: 'center' }));
+
+  grid.innerHTML = '';
+  if (!items.length) {
+    document.getElementById('view-toggle-row').style.display = 'none';
+    ['constellation-container', 'timeline-container'].forEach(id => document.getElementById(id).style.display = 'none');
+    ['constellation-detail', 'timeline-detail'].forEach(id => document.getElementById(id).classList.remove('visible'));
+    grid.style.display = '';
+    grid.innerHTML = `
+      <div class="empty-state" style="grid-column:1/-1">
+        <div class="emoji">🔍</div>
+        <h3>Nothing matched</h3>
+        <p>Try “Find more moments”, edit the brief, or widen the dates or markets.</p>
+      </div>`;
+    renderMoreBar();
+    return;
+  }
+
+  // Orbit and timeline are both built so switching is instant
+  renderConstellation(items, st.brief);
+  document.getElementById('view-toggle-row').style.display = 'flex';
+  document.getElementById('timeline-container').style.display = 'block';  // so it can measure its width
+  renderTimeline(items, window_);
+
+  const listFragment = document.createDocumentFragment();
+  const [top, ...rest] = items;
+  listFragment.appendChild(makeFeaturedCard(top.event, top.reason));
+  if (rest.length) {
+    const regGrid = document.createElement('div');
+    regGrid.className = 'o-grid';
+    rest.forEach(({ event, reason }, i) => regGrid.appendChild(makeCard(event, i + 1, reason)));
+    listFragment.appendChild(regGrid);
+  }
+  grid.appendChild(listFragment);
+  setView(keepView && currentView ? currentView : (window.innerWidth < 600 ? 'list' : 'orbit'));  // orbit & timeline are hidden on phones
+  renderMoreBar();
+}
+
 async function runSearch() {
   const brief   = document.getElementById('brief-input').value.trim();
   // The summary card's button drives the search once the brief has been checked
@@ -3043,6 +3215,8 @@ async function runSearch() {
   section.classList.remove('hidden');
   divider.classList.remove('hidden');
   grid.innerHTML = '';
+  lastSearch = null;
+  document.getElementById('results-more')?.remove();
 
   if (!brief) {
     // No brief — just show filtered events without AI
@@ -3097,10 +3271,11 @@ async function runSearch() {
     const preWindow = confirmedProfile?.campaign_end
       ? resolveCampaignWindow({ start: confirmedProfile.campaign_start, end: confirmedProfile.campaign_end }) : null;
     const usable = e => (!preWindow || !e.date || tagTiming({ ...e }, preWindow)) && fitsRegion(e, confirmedProfile?.region) && !DEFUNCT.test(e.name);
-    const allCandidates = [...candidateEvents, ...liveEvents].filter(usable);
+    const allCandidates = [...candidateEvents, ...liveEvents].filter(e => usable(e) && !Hidden.has(e));
 
     document.querySelector('.loading-text').textContent = 'AI is ranking your moments…';
-    const { dbResults, generatedEvents, relevantArtists, campaignWindow } = await rankEventsWithAI(brief, allCandidates, confirmedProfile);
+    const { dbResults, generatedEvents, relevantArtists, campaignWindow } =
+      await rankEventsWithAI(brief, allCandidates, confirmedProfile, { exclude: Hidden.forScope().map(h => h.name) });
 
     // Fetch live gig data from Bandsintown using AI-suggested artists
     let gigEvents = [];
@@ -3109,77 +3284,14 @@ async function runSearch() {
       gigEvents = await fetchBandsintownGigs(relevantArtists, selectedMarkets);
     }
 
-    // Map DB results back to full event objects
-    const eventById = {};
-    allCandidates.forEach(e => { eventById[e.id] = e; });
-
-    const dbRanked = dbResults
-      .filter(r => eventById[r.id])
-      .map(r => ({ event: { ...eventById[r.id], activation: r.activation }, reason: r.reason, fit: r.fit }))
-      .filter(({ event }) => _tonalyFilter(event.name, event.cat));
-
-    // Merge generated events and gig events (interleaved after top 3 DB results)
-    const generatedRanked = generatedEvents.map(e => ({ event: e, reason: e.reason, fit: e.fit }));
-    const gigRanked = gigEvents.map(e => ({ event: e, reason: `Live ${e.artistName} show in ${e.region} — a direct audience activation opportunity.` }));
     const window_ = resolveCampaignWindow(campaignWindow);
-    const fits = ({ event, fit }) => !DEFUNCT.test(event.name) && fitsMarkets(event, selectedMarkets, fit)
-      && fitsRegion(event, confirmedProfile?.region) && tagTiming(event, window_);
-    const rankedEvents = [
-      ...dbRanked.slice(0, 3),
-      ...generatedRanked,
-      ...gigRanked,
-      ...dbRanked.slice(3)
-    ].filter(fits).filter(uniqueMoment());
-
-    grid.innerHTML = '';
-
-    if (rankedEvents.length === 0) {
-      title.innerHTML = 'No moments found';
-      meta.textContent = 'Try broadening your brief or adjusting your filters.';
-      document.getElementById('view-toggle-row').style.display = 'none';
-      grid.style.display = '';
-      document.getElementById('constellation-container').style.display = 'none';
-      document.getElementById('constellation-detail').classList.remove('visible');
-    document.getElementById('timeline-container').style.display = 'none';
-    document.getElementById('timeline-detail').classList.remove('visible');
-      grid.innerHTML = `
-        <div class="empty-state" style="grid-column:1/-1">
-          <div class="emoji">🔍</div>
-          <h3>Nothing matched</h3>
-          <p>Try a different brief, remove market filters, or browse all events below.</p>
-        </div>`;
-    } else {
-      const mktLabel = selectedMarkets.length
-        ? MARKETS.filter(m => selectedMarkets.includes(m.code)).map(m => m.flag+' '+m.name).join(', ')
-        : 'all markets';
-      const forWho = [confirmedProfile?.client, confirmedProfile?.product].filter(Boolean).map(escHtml).join(' · ');
-      title.innerHTML = `${forWho ? `<div class="o-for">For ${forWho}</div>` : ''}<span class="count">${rankedEvents.length}</span> moment${rankedEvents.length !== 1 ? 's' : ''}`;
-      meta.innerHTML = briefMetaChips(confirmedProfile, mktLabel, window_, generatedRanked.length);
-      document.getElementById('meta-edit')?.addEventListener('click', () =>
-        document.getElementById('brief-summary').scrollIntoView({ behavior: 'smooth', block: 'center' }));
-
-      // Show constellation by default; timeline is built too so switching is instant
-      renderConstellation(rankedEvents, brief);
-      document.getElementById('view-toggle-row').style.display = 'flex';
-      document.getElementById('timeline-container').style.display = 'block';  // so it can measure its width
-      renderTimeline(rankedEvents, window_);
-      setView(window.innerWidth < 600 ? 'list' : 'orbit');  // orbit & timeline are hidden on phones
-
-      // Build list view cards (hidden by default)
-      const listFragment = document.createDocumentFragment();
-      const [top, ...rest] = rankedEvents;
-      if (top) {
-        listFragment.appendChild(makeFeaturedCard(top.event, top.reason));
-      }
-      if (rest.length > 0) {
-        const regGrid = document.createElement('div');
-        regGrid.className = 'o-grid';
-        rest.forEach(({event, reason}, i) => regGrid.appendChild(makeCard(event, i + 1, reason)));
-        listFragment.appendChild(regGrid);
-      }
-      grid.innerHTML = '';
-      grid.appendChild(listFragment);
-    }
+    const items = buildRanked(dbResults, generatedEvents, gigEvents, allCandidates, window_);
+    const mktLabel = selectedMarkets.length
+      ? MARKETS.filter(m => selectedMarkets.includes(m.code)).map(m => m.flag+' '+m.name).join(', ')
+      : 'all markets';
+    lastSearch = { brief, candidates: allCandidates, window_, items, mktLabel, round: 0,
+      aiCount: items.filter(x => x.event.isGenerated).length };
+    showResults(false);
   } catch (err) {
     grid.innerHTML = '';
     title.innerHTML = 'Something went wrong';
@@ -3336,6 +3448,7 @@ function init() {
 
   // Clear
   document.getElementById('clear-btn').onclick = () => {
+    lastSearch = null; renderMoreBar();
     document.getElementById('brief-input').value = '';
     resetBriefSummary();
     selectedCats = []; selectedQuarters = [];

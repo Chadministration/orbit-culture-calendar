@@ -27,6 +27,8 @@ Brief ──► 1. Read brief (AI)  ──► editable summary card  ──► u
              • de-duplication
                                    │
           5. Show: Orbit · Timeline · List  ──► shortlist ──► deck / CSV
+             • "Not relevant" hides a moment for that client (and future searches for them)
+             • "Find more" asks the AI for the next-best moments, skipping shown and hidden ones
 ```
 
 Everything user-facing is one file, `index.html` (vanilla HTML/CSS/JS, no build step). Server-side work lives in Netlify Functions, which proxy third-party APIs so keys never reach the browser.
